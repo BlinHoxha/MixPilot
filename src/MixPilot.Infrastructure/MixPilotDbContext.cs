@@ -14,6 +14,7 @@ public sealed class MixPilotDbContext(DbContextOptions<MixPilotDbContext> option
     public DbSet<Collection> Collections => Set<Collection>();
     public DbSet<DjProfile> Profiles => Set<DjProfile>();
     public DbSet<DjSet> Sets => Set<DjSet>();
+    public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -55,6 +56,21 @@ public sealed class MixPilotDbContext(DbContextOptions<MixPilotDbContext> option
             b.HasMany(s => s.Versions).WithOne().HasForeignKey(v => v.SetId).OnDelete(DeleteBehavior.Cascade);
         });
         model.Entity<SetVersion>().HasKey(v => new { v.SetId, v.Number });
+        model.Entity<IdempotencyRecord>(b =>
+        {
+            b.HasKey(r => r.Id);
+            b.Property(r => r.OwnerKey).HasMaxLength(64).IsRequired();
+            b.Property(r => r.Key).HasMaxLength(100).IsRequired();
+            b.Property(r => r.Method).HasMaxLength(10).IsRequired();
+            b.Property(r => r.Route).HasMaxLength(200).IsRequired();
+            b.Property(r => r.BodyHash).HasMaxLength(64).IsRequired();
+            b.Property(r => r.State).HasMaxLength(16).IsRequired();
+            b.Property(r => r.ResponseBody).HasMaxLength(262144);
+            b.Property(r => r.ContentType).HasMaxLength(100);
+            b.Property(r => r.Location).HasMaxLength(500);
+            b.HasIndex(r => new { r.OwnerKey, r.Key }).IsUnique();
+            b.HasQueryFilter(r => r.OwnerKey == OwnerKey);
+        });
     }
 
     private void ConfigureOwned<T>(EntityTypeBuilder<T> entity) where T : OwnedEntity
@@ -68,6 +84,13 @@ public sealed class MixPilotDbContext(DbContextOptions<MixPilotDbContext> option
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        foreach (var entry in ChangeTracker.Entries<IdempotencyRecord>())
+        {
+            if (entry.State == EntityState.Added) entry.Entity.OwnerKey = OwnerKey;
+            else if ((entry.State is EntityState.Modified or EntityState.Deleted) &&
+                     (entry.Entity.OwnerKey != OwnerKey || entry.OriginalValues.GetValue<string>(nameof(IdempotencyRecord.OwnerKey)) != OwnerKey))
+                throw new RuleViolation("forbidden", "This operation is not permitted.", 403);
+        }
         foreach (var entry in ChangeTracker.Entries<OwnedEntity>())
         {
             if (entry.State == EntityState.Added) entry.Entity.OwnerKey = OwnerKey;

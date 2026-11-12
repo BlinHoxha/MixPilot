@@ -1,4 +1,5 @@
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 using MixPilot.Contracts;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
@@ -10,6 +11,13 @@ public sealed class ApiContractOperationFilter : IOperationFilter
     {
         // IDs are stable for code generation and independent of route formatting conventions.
         operation.OperationId = context.MethodInfo.DeclaringType!.Name.Replace("Controller", "") + "_" + context.MethodInfo.Name;
+        if (context.MethodInfo.GetCustomAttribute<IdempotentAttribute>() is not null)
+            operation.Parameters.Add(new OpenApiParameter
+            {
+                Name = "Idempotency-Key", In = ParameterLocation.Header, Required = false,
+                Description = "Optional owner-scoped retry key (1-100 letters, digits, underscores or hyphens).",
+                Schema = new OpenApiSchema { Type = "string", MinLength = 1, MaxLength = 100, Pattern = "^[A-Za-z0-9_-]+$" }
+            });
         var schema = context.SchemaGenerator.GenerateSchema(typeof(ApiProblemResponse), context.SchemaRepository);
         if (operation.Responses.ContainsKey("503"))
             operation.Responses["503"] = new OpenApiResponse

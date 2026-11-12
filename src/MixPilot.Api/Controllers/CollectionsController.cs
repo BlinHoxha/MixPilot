@@ -17,6 +17,7 @@ public sealed class CollectionsController(ICollectionService library) : Controll
     public async Task<ActionResult<CommonResult<CollectionResponse>>> Get(Guid id, CancellationToken ct) =>
         CommonResult<CollectionResponse>.Success(await library.Get(id, ct));
     [HttpPost]
+    [Idempotent]
     [ProducesResponseType<CommonResult<CollectionResponse>>(201)]
     public async Task<ActionResult<CommonResult<CollectionResponse>>> Create(SaveCollectionRequest request, CancellationToken ct)
     {

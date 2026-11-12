@@ -11,6 +11,7 @@ namespace MixPilot.Api.Controllers;
 public sealed class ImportsController(ITrackService library) : ControllerBase
 {
     [HttpPost("csv")]
+    [Idempotent]
     [ProducesResponseType<ValidationProblemDetails>(400)]
     [ProducesResponseType<CommonResult<ImportResponse>>(200)]
     public async Task<ActionResult<CommonResult<ImportResponse>>> Import(CsvImportRequest request, CancellationToken ct) =>

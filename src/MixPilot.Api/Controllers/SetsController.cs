@@ -32,6 +32,7 @@ public sealed class SetsController(ISetService sets) : ControllerBase
     public async Task<ActionResult<CommonResult<SetResponse>>> Approve(Guid id, int version, ApproveSetVersionRequest request, CancellationToken ct) =>
         CommonResult<SetResponse>.Success(await sets.Approve(id, version, request, ct));
     [HttpPost("generate")]
+    [Idempotent]
     [ProducesResponseType<CommonResult<SetResponse>>(201)]
     public async Task<ActionResult<CommonResult<SetResponse>>> Generate(GenerateSetRequest request, CancellationToken ct)
     {

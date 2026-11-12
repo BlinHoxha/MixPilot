@@ -28,6 +28,7 @@ public static class DependencyInjection
         services.AddScoped<ICollectionRepository, CollectionRepository>();
         services.AddScoped<IDjProfileRepository, DjProfileRepository>();
         services.AddScoped<ISetRepository, SetRepository>();
+        services.AddScoped<IIdempotencyStore, IdempotencyStore>();
         services.AddScoped<ITrackService, TrackService>();
         services.AddScoped<ICollectionService, CollectionService>();
         services.AddScoped<IDjProfileService, DjProfileService>();

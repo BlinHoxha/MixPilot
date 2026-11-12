@@ -1,5 +1,8 @@
 using System.Security.Claims;
+using System.Security.Cryptography;
+using System.Text;
 using System.Text.Encodings.Web;
+using System.Text.Json;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -13,13 +16,16 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MixPilot.Infrastructure;
+using MixPilot.Application.Abstractions.Identity;
 
 namespace MixPilot.Tests;
 
 public sealed class ApiFactory : WebApplicationFactory<Api.Program>
 {
     private readonly SqliteConnection connection = new("Data Source=:memory:");
+    private readonly Action<IServiceCollection>? configureServices;
     public ApiFactory() => connection.Open();
+    internal ApiFactory(Action<IServiceCollection> configureServices) : this() => this.configureServices = configureServices;
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
@@ -30,8 +36,18 @@ public sealed class ApiFactory : WebApplicationFactory<Api.Program>
             services.RemoveAll<DbContextOptions<MixPilotDbContext>>(); services.RemoveAll<MixPilotDbContext>();
             services.AddDbContext<MixPilotDbContext>(o => o.UseSqlite(connection).ReplaceService<IModelCustomizer, SqliteTestModelCustomizer>());
             services.AddAuthentication("Test").AddScheme<AuthenticationSchemeOptions, TestAuthentication>("Test", _ => { });
+            configureServices?.Invoke(services);
         });
     }
+    public MixPilotDbContext OwnerContext(string subject)
+    {
+        var ownerKey = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
+            JsonSerializer.Serialize(new[] { "test-issuer", subject }))));
+        var options = new DbContextOptionsBuilder<MixPilotDbContext>().UseSqlite(connection)
+            .ReplaceService<IModelCustomizer, SqliteTestModelCustomizer>().Options;
+        return new MixPilotDbContext(options, new TestUser(ownerKey));
+    }
+    private sealed class TestUser(string key) : ICurrentUser { public string OwnerKey => key; }
     public HttpClient Client(string? subject = null)
     {
         var client = CreateClient(new() { AllowAutoRedirect = false });

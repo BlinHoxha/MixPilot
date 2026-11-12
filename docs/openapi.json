@@ -232,6 +232,19 @@
           "Collections"
         ],
         "operationId": "Collections_Create",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Optional owner-scoped retry key (1-100 letters, digits, underscores or hyphens).",
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]\u002B$",
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -692,6 +705,19 @@
           "Imports"
         ],
         "operationId": "Imports_Import",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Optional owner-scoped retry key (1-100 letters, digits, underscores or hyphens).",
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]\u002B$",
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -1773,6 +1799,19 @@
           "Sets"
         ],
         "operationId": "Sets_Generate",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Optional owner-scoped retry key (1-100 letters, digits, underscores or hyphens).",
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]\u002B$",
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {
@@ -2324,6 +2363,19 @@
           "Tracks"
         ],
         "operationId": "Tracks_Create",
+        "parameters": [
+          {
+            "name": "Idempotency-Key",
+            "in": "header",
+            "description": "Optional owner-scoped retry key (1-100 letters, digits, underscores or hyphens).",
+            "schema": {
+              "maxLength": 100,
+              "minLength": 1,
+              "pattern": "^[A-Za-z0-9_-]\u002B$",
+              "type": "string"
+            }
+          }
+        ],
         "requestBody": {
           "content": {
             "application/json": {

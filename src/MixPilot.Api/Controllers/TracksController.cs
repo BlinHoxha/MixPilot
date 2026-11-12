@@ -21,6 +21,7 @@ public sealed class TracksController(ITrackService library) : ControllerBase
     public async Task<ActionResult<CommonResult<TrackResponse>>> Get(Guid id, CancellationToken ct) =>
         CommonResult<TrackResponse>.Success(await library.Get(id, ct));
     [HttpPost]
+    [Idempotent]
     [ProducesResponseType<CommonResult<TrackResponse>>(201), ProducesResponseType<ProblemDetails>(409)]
     public async Task<ActionResult<CommonResult<TrackResponse>>> Create(CreateTrackRequest request, CancellationToken ct)
     {
