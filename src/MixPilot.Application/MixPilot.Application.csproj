@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="$(FrameworkRoot)\src\Framework.Application\Framework.Application.csproj" />
+    <ProjectReference Include="..\MixPilot.Domain\MixPilot.Domain.csproj" />
+    <ProjectReference Include="..\MixPilot.Contracts\MixPilot.Contracts.csproj" />
+  </ItemGroup>
+<ItemGroup><ProjectReference Include="$(AIFrameworkRoot)\src\AIFramework.Application\AIFramework.Application.csproj" /></ItemGroup>
+</Project>
+

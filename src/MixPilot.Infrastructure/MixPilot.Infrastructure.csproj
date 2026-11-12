@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <ProjectReference Include="..\MixPilot.Application\MixPilot.Application.csproj" />
+    <ProjectReference Include="$(FrameworkRoot)\src\Framework.Infrastructure\Framework.Infrastructure.csproj" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
+  </ItemGroup>
+<ItemGroup><ProjectReference Include="$(AIFrameworkRoot)\src\AIFramework.Azure\AIFramework.Azure.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="$(AIFrameworkRoot)\src\AIFramework.Local\AIFramework.Local.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="$(AIFrameworkRoot)\src\AIFramework.Aws\AIFramework.Aws.csproj" /></ItemGroup>
+</Project>

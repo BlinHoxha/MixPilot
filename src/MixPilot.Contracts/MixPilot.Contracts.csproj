@@ -1,0 +1,4 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup><ProjectReference Include="$(FrameworkRoot)\src\Framework.Contracts\Framework.Contracts.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="$(AIFrameworkRoot)\src\AIFramework.Contracts\AIFramework.Contracts.csproj" /></ItemGroup>
+</Project>
