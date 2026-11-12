@@ -1,6 +1,6 @@
 # MixPilot
 
-Personal music-library management and deterministic DJ set planning, built on the sibling **Framework** repository. This is the first backend increment of the AI DJ Multi-Source platform. Web and mobile applications have not been created.
+Personal music-library management and deterministic DJ set planning, built on the sibling **Framework** repository. This is the first backend increment of the AI DJ Multi-Source platform. The React web app and Expo mobile preview live in the sibling `MixPilot.Frontend` repository.
 
 ## Included
 
@@ -120,9 +120,9 @@ The engine uses a deterministic greedy heuristic, not a global optimizer. It con
 
 ## Web and mobile handoff
 
-Both clients will consume the same API. See [API contract](docs/api-contract.md) and the checked-in [OpenAPI document](docs/openapi.json). No web/mobile package or frontend toolchain is required to build this backend.
+The sibling `MixPilot.Frontend` workspace has a React web app and Expo mobile preview. Both use this API through its checked-in `docs/openapi.json` snapshot and generated client. See the [API contract](docs/api-contract.md) and [OpenAPI document](docs/openapi.json). No frontend toolchain is required to build this backend.
 
-After an intentional contract change, run `./scripts/Export-OpenApi.ps1`, review the schema diff, then run the tests. The normal test suite fails when the generated contract drifts from the snapshot. Future frontend packages should generate TypeScript types/client code from this document instead of duplicating C# DTOs manually.
+After an intentional contract change, run `./scripts/Export-OpenApi.ps1`, review the schema diff, then run the tests. The normal test suite fails when the generated contract drifts from the snapshot. Update the frontend's checked-in snapshot and regenerate its TypeScript client separately.
 
 See [implementation status](docs/implementation-status.md) for requirement coverage and [architecture decisions](docs/architecture.md) for the next increments.
 

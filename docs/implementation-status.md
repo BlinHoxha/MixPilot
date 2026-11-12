@@ -37,11 +37,17 @@ This increment is a functioning **backend foundation and personal-library planni
 | FR-061 privacy/transparency | Owner isolation and visible rights/source status; preference transparency and full deletion/retention workflows later |
 | FR-062 provider policy configuration | Documented disabled-provider baseline; runtime policy registry later |
 
+## Requirement sources
+
+By owner decision of 2026-11-12, the MixPilot Documentation v1.2 (Multi-Device + Mobile-Ready) package is the target requirement set; source code is the truth for implemented behavior; the two PDFs in `docs/reference/` are historical inputs. The owner also decided on 2026-11-12 to keep the `expectedRevision` request field for optimistic concurrency; the v1.2 addenda's `If-Match` proposal is not adopted.
+
 ## Frontend document coverage
 
-Implemented now: one API for both clients, DTO boundaries, metadata-only payloads, pagination, stable enums/errors/operation IDs, revision conflicts, capabilities, OpenAPI snapshot/drift checking and configurable browser CORS. No React, React Native, Expo, SignalR or frontend packages have been created.
+Implemented now in the backend: one API for both clients, DTO boundaries, metadata-only payloads, pagination, stable enums/errors/operation IDs, revision conflicts, capabilities, OpenAPI snapshot/drift checking and configurable browser CORS. The sibling `MixPilot.Frontend` repository has a React web workstation for library, collection, set planning and history workflows, an Expo companion preview for library search/details and saved-set review, a generated OpenAPI client, and shared validation. Its checked-in OpenAPI snapshot comes from this backend.
 
-Prepared design: shared generated TypeScript client, independent web/mobile views, owner-scoped cache keys, secure client authentication, durable asynchronous job + polling + real-time notifications. These are documented interfaces for subsequent work, not working features claimed by the current API.
+Pending in the frontend: production mobile sign-in, native secure credential storage, mobile editing/quick-save and full native device testing. Audio upload/playback, durable jobs and SignalR, external discovery and DJ export also await backend capabilities.
+
+Prepared backend design: durable asynchronous jobs with polling and real-time notifications. These are documented interfaces for subsequent work, not working features claimed by the current API.
 
 ## Verification and release gaps
 

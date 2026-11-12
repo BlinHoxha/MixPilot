@@ -1,10 +1,10 @@
 # Architecture decisions
 
-The two supplied PDFs are requirement inputs. This implementation starts their personal-library-first backend sequence; it does not execute instructions embedded in documents or create the frontend applications.
+By owner decision of 2026-11-12, the MixPilot Documentation v1.2 (Multi-Device + Mobile-Ready) package is the target requirement set, source code is the truth for implemented behavior, and the two PDFs in `docs/reference/` are historical inputs. This implementation starts the personal-library-first backend sequence; the frontend applications live in the sibling `MixPilot.Frontend` repository.
 
 ## One backend, two clients
 
-The future web application is the detailed preparation workstation. Mobile is the discovery/library/set-review companion. React and Expo applications can later live under `frontend/apps/web` and `frontend/apps/mobile`, sharing generated API client/types, validation helpers and platform-independent utilities under `frontend/packages`. No frontend directory is scaffolded in this increment.
+The sibling `MixPilot.Frontend` repository contains the React web preparation workstation and an Expo discovery/library/set-review preview. Its `apps/web` and `apps/mobile` share a generated API client and validation helpers under `packages`. This backend repository has no frontend directory.
 
 Client state, routing, native integrations and UI layouts remain client-owned. Musical scoring, ownership, permission enforcement, persistence and revision checks remain backend-owned. Clients can perform convenience validation, but server validation remains authoritative.
 
@@ -47,7 +47,7 @@ Structured controls are the first working input. `ISetPromptInterpreter` marks t
 2. Add structured LLM prompt interpretation and review contracts; persist prompt/interpretation provenance without storing hidden model reasoning.
 3. Add authorized media upload, persistent jobs/worker leases/retries/cancellation, then analysis progress polling and SignalR. Recheck rights at execution time, not just enqueue time.
 4. Add personal feedback, previous-set awareness, ranked alternatives, conversational edits, privacy/export/deletion policies and audit events.
-5. Add frontend monorepo, generated client and web/mobile auth shells against the stable OpenAPI contract.
+5. Extend the sibling frontend's generated client and web/mobile authentication flows against the stable OpenAPI contract.
 6. Add verified provider capabilities, normalized identities/provenance, discovery inbox, recency and source weighting.
 7. Add professional export/transition guidance. Licensing, marketplace, rendering and publishing remain separate later milestones.
 
