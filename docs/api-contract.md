@@ -37,6 +37,7 @@ Pagination is one-based: `pageNumber=1&pageSize=20` with a maximum size of 100. 
 | POST | `/api/v1/sets/{id}/regenerate` | New requirements, preserving locked positions |
 | GET | `/api/v1/sets/{id}/versions` | Version metadata |
 | GET | `/api/v1/sets/{id}/versions/{version}` | Historical snapshot |
+| POST | `/api/v1/sets/{id}/versions/{version}/approve` | Approve an existing version with `expectedRevision` |
 | GET | `/health/live`, `/health/ready` | Anonymous operational checks |
 
 The detailed field definitions, validation limits and stable operation IDs are in `openapi.json`.
@@ -48,6 +49,8 @@ Initial registrations are `myLibrary` with availability `registeredMetadata`. Th
 Planning filters by `CanReference`, dates and territories. Mixable additionally requires `CanMix`; initial metadata-only registrations therefore do not qualify. `Mixable` is an eligibility filter, not a mixing endpoint. Rendering/export/publishing require separate checks and implementations later.
 
 Saved versions contain metadata and rights snapshots for historical explanation. They are **not** current permission grants. Regeneration and manual edits re-read current tracks and validate current rights. Every future media operation must check live rights rather than trusting a saved response.
+
+Approval rechecks every track's current eligibility and rights against the selected version's requirements. A failure returns 422 `track_ineligible` without changing the set. A successful approval increments the set revision and sets `approvedVersion`; repeating approval of that version at the current revision changes nothing. New edit/regeneration versions remain `draft` while the approved version stays `approved`. When another version is approved, the earlier approval becomes `superseded`. `SetResponse` includes `status` and `approvedVersion`; version metadata includes `status` and `approvedAt`.
 
 ## Authentication, caching and transport
 

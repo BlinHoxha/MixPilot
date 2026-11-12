@@ -39,6 +39,13 @@ public sealed class EditSetRequest
     [Required, MaxLength(200)] public Guid[] LockedTrackIds { get; init; } = [];
 }
 
+public sealed class ApproveSetVersionRequest
+{
+    [Range(1, int.MaxValue)] public int ExpectedRevision { get; init; }
+}
+
+public enum SetVersionStatus { Draft, Approved, Superseded }
+
 public sealed record SetTrackResponse(int Position, Guid TrackId, string Artist, string Title,
     string Version, int DurationSeconds, decimal? Bpm, string? MusicalKey, int? Energy,
     SourceType Source, string Availability, bool IsLocked, double Compatibility,
@@ -46,9 +53,17 @@ public sealed record SetTrackResponse(int Position, Guid TrackId, string Artist,
 
 public sealed record SetResponse(Guid Id, string Name, int Revision, int Version,
     SetRequirementsRequest Requirements, int DurationSeconds, IReadOnlyList<SetTrackResponse> Tracks,
-    IReadOnlyList<string> Warnings, DateTimeOffset UpdatedAt);
+    IReadOnlyList<string> Warnings, DateTimeOffset UpdatedAt)
+{
+    public SetVersionStatus Status { get; init; }
+    public int? ApprovedVersion { get; init; }
+}
 
 public sealed record SetSummaryResponse(Guid Id, string Name, int Revision, DateTimeOffset UpdatedAt);
-public sealed record SetVersionResponse(int Version, DateTimeOffset CreatedAt);
+public sealed record SetVersionResponse(int Version, DateTimeOffset CreatedAt)
+{
+    public SetVersionStatus Status { get; init; }
+    public DateTimeOffset? ApprovedAt { get; init; }
+}
 public sealed record CapabilitiesResponse(string ApiVersion, string[] EnabledFeatures, string[] PlannedFeatures,
     int MaximumPageSize, int MaximumCsvRows, bool AudioOperationsAvailable, bool PromptInterpretationAvailable);

@@ -15,6 +15,7 @@ public sealed record SetPlan(SetRequirements Requirements, PlannedTrack[] Tracks
 public sealed class DjSet : OwnedEntity
 {
     public string Name { get; set; } = "";
+    public int? ApprovedVersion { get; set; }
     public List<SetVersion> Versions { get; set; } = [];
 }
 
@@ -23,6 +24,7 @@ public sealed class SetVersion
     public Guid SetId { get; set; }
     public int Number { get; set; }
     public DateTimeOffset CreatedAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset? ApprovedAt { get; set; }
     public string PlanJson { get; set; } = "";
 }
 

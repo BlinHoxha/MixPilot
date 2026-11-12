@@ -11,5 +11,6 @@ public interface ISetService
     Task<IReadOnlyList<SetVersionResponse>> Versions(Guid id, CancellationToken ct);
     Task<SetResponse> Regenerate(Guid id, RegenerateSetRequest request, CancellationToken ct);
     Task<SetResponse> Edit(Guid id, EditSetRequest request, CancellationToken ct);
+    Task<SetResponse> Approve(Guid id, int version, ApproveSetVersionRequest request, CancellationToken ct);
 }
 

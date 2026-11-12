@@ -18,14 +18,14 @@ public sealed class SetService(ISetRepository repository, ITrackRepository track
         var plan = engine.Generate((await TrackCatalog.Load(trackRepository, ct)).Select(t => t.Snapshot()), request.Requirements.Domain(), Clock.GetUtcNow());
         var set = new DjSet { Id = Guid.NewGuid(), Name = request.Name.Trim() };
         AddVersion(set, plan); await PersistNew(set, ct);
-        return set.Response(set.Versions.Single(), plan);
+        return Response(set, set.Versions.Single(), plan);
     }
 
     public async Task<SetResponse> Get(Guid id, int? version, CancellationToken ct)
     {
         var set = await Require(id, ct);
         var selected = version is null ? set.Versions.MaxBy(v => v.Number)! : set.Versions.SingleOrDefault(v => v.Number == version) ?? throw Missing();
-        return set.Response(selected, Read(selected));
+        return Response(set, selected, Read(selected));
     }
 
     public async Task<PageResponse<SetSummaryResponse>> Search(PageQuery query, CancellationToken ct)
@@ -34,8 +34,37 @@ public sealed class SetService(ISetRepository repository, ITrackRepository track
         return PageResponse<SetSummaryResponse>.Create(page.Items.Select(s => new SetSummaryResponse(s.Id, s.Name, s.Revision, s.UpdatedAt)), page.PageNumber, page.PageSize, page.TotalCount);
     }
 
-    public async Task<IReadOnlyList<SetVersionResponse>> Versions(Guid id, CancellationToken ct) =>
-        (await Require(id, ct)).Versions.OrderByDescending(v => v.Number).Select(v => new SetVersionResponse(v.Number, v.CreatedAt)).ToArray();
+    public async Task<IReadOnlyList<SetVersionResponse>> Versions(Guid id, CancellationToken ct)
+    {
+        var set = await Require(id, ct);
+        return set.Versions.OrderByDescending(v => v.Number).Select(v => new SetVersionResponse(v.Number, v.CreatedAt)
+        {
+            Status = Status(set, v), ApprovedAt = v.ApprovedAt
+        }).ToArray();
+    }
+
+    public async Task<SetResponse> Approve(Guid id, int version, ApproveSetVersionRequest request, CancellationToken ct)
+    {
+        var set = await Require(id, ct);
+        var selected = set.Versions.SingleOrDefault(v => v.Number == version) ?? throw Missing();
+        CheckRevision(set, request.ExpectedRevision);
+        var plan = Read(selected);
+        if (set.ApprovedVersion == version) return Response(set, selected, plan);
+
+        var now = Clock.GetUtcNow();
+        foreach (var planned in plan.Tracks)
+        {
+            var track = await trackRepository.GetById(planned.Track.Id, false, ct);
+            if (track is null || !DjEngine.IsEligible(track.Snapshot(), plan.Requirements, now))
+                throw new RuleViolation("track_ineligible", "A track no longer satisfies the set requirements or rights.");
+        }
+
+        Touch(set);
+        set.ApprovedVersion = version;
+        selected.ApprovedAt ??= now;
+        await PersistChanges(ct);
+        return Response(set, selected, plan);
+    }
 
     public async Task<SetResponse> Regenerate(Guid id, RegenerateSetRequest request, CancellationToken ct)
     {
@@ -72,14 +101,19 @@ public sealed class SetService(ISetRepository repository, ITrackRepository track
     private async Task<SetResponse> SaveVersion(DjSet set, SetPlan plan, CancellationToken ct)
     {
         set.Revision++; set.UpdatedAt = Clock.GetUtcNow(); AddVersion(set, plan);
-        await PersistChanges(ct); return set.Response(set.Versions.MaxBy(v => v.Number)!, plan);
+        await PersistChanges(ct); return Response(set, set.Versions.MaxBy(v => v.Number)!, plan);
     }
 
     private void AddVersion(DjSet set, SetPlan plan) => set.Versions.Add(new()
     {
-        SetId = set.Id, Number = set.Revision, CreatedAt = Clock.GetUtcNow(), PlanJson = JsonSerializer.Serialize(plan)
+        SetId = set.Id, Number = set.Versions.Count + 1, CreatedAt = Clock.GetUtcNow(), PlanJson = JsonSerializer.Serialize(plan)
     });
     private static SetPlan Read(SetVersion version) => JsonSerializer.Deserialize<SetPlan>(version.PlanJson)!;
+    private static SetVersionStatus Status(DjSet set, SetVersion version) =>
+        set.ApprovedVersion == version.Number ? SetVersionStatus.Approved :
+        version.ApprovedAt is not null ? SetVersionStatus.Superseded : SetVersionStatus.Draft;
+    private static SetResponse Response(DjSet set, SetVersion version, SetPlan plan) =>
+        set.Response(version, plan) with { Status = Status(set, version), ApprovedVersion = set.ApprovedVersion };
     private async Task<DjSet> Require(Guid id, CancellationToken ct) => await EntityRepository.GetById(id, true, ct) ?? throw Missing();
 }
 

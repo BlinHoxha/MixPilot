@@ -27,6 +27,10 @@ public sealed class SetsController(ISetService sets) : ControllerBase
     [ProducesResponseType<CommonResult<SetResponse>>(200)]
     public async Task<ActionResult<CommonResult<SetResponse>>> Version(Guid id, int version, CancellationToken ct) =>
         CommonResult<SetResponse>.Success(await sets.Get(id, version, ct));
+    [HttpPost("{id:guid}/versions/{version:int:min(1)}/approve")]
+    [ProducesResponseType<CommonResult<SetResponse>>(200)]
+    public async Task<ActionResult<CommonResult<SetResponse>>> Approve(Guid id, int version, ApproveSetVersionRequest request, CancellationToken ct) =>
+        CommonResult<SetResponse>.Success(await sets.Approve(id, version, request, ct));
     [HttpPost("generate")]
     [ProducesResponseType<CommonResult<SetResponse>>(201)]
     public async Task<ActionResult<CommonResult<SetResponse>>> Generate(GenerateSetRequest request, CancellationToken ct)
