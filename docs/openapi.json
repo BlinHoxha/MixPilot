@@ -1188,6 +1188,135 @@
         }
       }
     },
+    "/api/v1/set-intents": {
+      "post": {
+        "tags": [
+          "SetIntents"
+        ],
+        "operationId": "SetIntents_Interpret",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetIntentRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SetIntentRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/SetIntentRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetIntentResponseCommonResult"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetIntentResponseCommonResult"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SetIntentResponseCommonResult"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "AI is disabled or its provider is unavailable",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblemResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Request validation failed",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblemResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblemResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Permission denied",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblemResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Resource not found",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblemResponse"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Revision or resource conflict",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblemResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Domain constraints not satisfied",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblemResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error",
+            "content": {
+              "application/problem\u002Bjson": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiProblemResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/sets": {
       "get": {
         "tags": [
@@ -3512,6 +3641,71 @@
           },
           "data": {
             "$ref": "#/components/schemas/SetExplanationResponse"
+          },
+          "error": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SetIntentRequest": {
+        "required": [
+          "prompt",
+          "territory"
+        ],
+        "type": "object",
+        "properties": {
+          "prompt": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "pattern": "(?s).*\\S.*",
+            "type": "string"
+          },
+          "territory": {
+            "minLength": 1,
+            "pattern": "^[A-Z]{2}$",
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SetIntentResponse": {
+        "type": "object",
+        "properties": {
+          "requirements": {
+            "$ref": "#/components/schemas/SetRequirementsRequest"
+          },
+          "assumptions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "unresolved": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "provider": {
+            "type": "string"
+          },
+          "model": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "SetIntentResponseCommonResult": {
+        "type": "object",
+        "properties": {
+          "succeeded": {
+            "type": "boolean"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SetIntentResponse"
           },
           "error": {
             "type": "string",

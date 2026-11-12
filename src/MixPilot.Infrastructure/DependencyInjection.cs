@@ -5,6 +5,7 @@ using AIFramework.Local;
 using AIFramework.Azure;
 using AIFramework.Aws;
 using MixPilot.Application.AI;
+using MixPilot.Application.Abstractions.AI;
 using MixPilot.Infrastructure.AI;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -33,6 +34,11 @@ public static class DependencyInjection
         services.AddScoped<ICollectionService, CollectionService>();
         services.AddScoped<IDjProfileService, DjProfileService>();
         services.AddScoped<ISetService, SetService>();
+        services.AddScoped<ISetIntentService>(provider => new SetPromptInterpreter(
+            provider.GetRequiredService<ITrackRepository>(), provider.GetService<IStructuredGenerationModel>(),
+            provider.GetRequiredService<AiFeatureOptions>()));
+        services.AddScoped<ISetPromptInterpreter>(provider => provider.GetRequiredService<ISetIntentService>());
+        _ = SetIntentSchema.Value;
         services.AddSingleton<DjEngine>();
         bool aiEnabled = bool.TryParse(configuration["AI:Enabled"], out var enabled) && enabled;
         services.AddSingleton(new AiFeatureOptions(aiEnabled));
@@ -41,7 +47,13 @@ public static class DependencyInjection
             switch (configuration["AI:Provider"] ?? "Local")
             {
                 case "Local": services.AddLocalAi(); break;
-                case "Azure": services.AddAzureAi(configuration); break;
+                case "Azure":
+                    services.AddAzureAi(configuration);
+                    var structured = configuration.GetSection("AI:Azure:Structured");
+                    if (structured.Exists())
+                        services.AddAzureStructuredGeneration(structured.Get<AzureStructuredOptions>()
+                            ?? throw new InvalidOperationException("AI:Azure:Structured configuration is invalid."));
+                    break;
                 case "Aws": services.AddBedrockChat(new(configuration["AI:Aws:Region"] ?? "", configuration["AI:Aws:ModelId"] ?? "")); break;
                 default: throw new InvalidOperationException("Unsupported AI provider.");
             }

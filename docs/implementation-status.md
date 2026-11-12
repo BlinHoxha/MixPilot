@@ -16,7 +16,7 @@ This increment is a functioning **backend foundation and personal-library planni
 | FR-008 audio analysis | Deferred; manual metadata supported |
 | FR-009 collections | Ordered owner-scoped collections and revisioned membership |
 | FR-010–019 sources/discovery/identity | Source and rights types established; live adapters, inbox and normalization workflows deferred |
-| FR-020–021 natural language | Interpreter boundary only; no model-backed endpoint yet |
+| FR-020–021 natural language | Model-backed set-intent preview with owner-scoped genre/mood vocabulary, validated requirements and confirmation assumptions; Azure structured provider optional, no prompt-to-generation action |
 | FR-022 manual controls | Duration/BPM/energy/genre/mood/vocals/territory/exclusions; multi-source controls later |
 | FR-023 candidate pool | Personal-library candidates, bounded at 5,000; multi-source identity resolution later |
 | FR-024 rights filter | Planning/Mixable eligibility, license windows and territories; permissions fail closed |

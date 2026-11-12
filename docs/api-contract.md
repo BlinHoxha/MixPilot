@@ -23,6 +23,7 @@ Pagination is one-based: `pageNumber=1&pageSize=20` with a maximum size of 100. 
 | Method | Route | Contract |
 | --- | --- | --- |
 | GET | `/api/v1/capabilities` | Available/planned features and limits |
+| POST | `/api/v1/set-intents` | Preview validated set requirements from a natural-language prompt; no set is generated |
 | GET/POST | `/api/v1/tracks` | Search/page or authorized metadata registration |
 | GET/PUT/DELETE | `/api/v1/tracks/{id}` | Detail, revisioned correction or removal |
 | POST | `/api/v1/imports/csv` | Bounded atomic metadata import |
@@ -41,6 +42,8 @@ Pagination is one-based: `pageNumber=1&pageSize=20` with a maximum size of 100. 
 | GET | `/health/live`, `/health/ready` | Anonymous operational checks |
 
 The detailed field definitions, validation limits and stable operation IDs are in `openapi.json`.
+
+`POST /api/v1/set-intents` accepts a 1–1000 character nonblank `prompt` and a two-letter uppercase `territory`. It returns `requirements`, `assumptions`, `unresolved`, `provider` and `model` in the normal success envelope. The returned requirements always use planning mode, the request territory and an empty exclusion list. Clients should show the assumptions and unresolved terms for confirmation or editing, then submit the confirmed requirements to `/api/v1/sets/generate` separately. The model sees only the prompt, the closed output schema, the five energy-curve values and up to 200 distinct genre and mood values from that owner's library. Unknown genres or moods are left unresolved; unsupported duration or BPM values are defaulted with an assumption. Invalid model output returns 422 `prompt_not_interpretable`; an unconfigured or disabled structured provider returns 503 `prompt_interpretation_unavailable`; provider transport failures and timeouts return 503 `ai_provider_unavailable` or `ai_provider_timeout`. Azure structured generation is available only when AI is enabled, `AI:Provider` is `Azure`, and `AI:Azure:Structured` supplies an HTTPS `Endpoint` and a `Deployment`. Local and Aws providers do not enable prompt interpretation.
 
 ## Rights and availability
 

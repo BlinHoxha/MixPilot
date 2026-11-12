@@ -11,6 +11,15 @@ namespace MixPilot.Infrastructure.Persistence.Repositories;
 public sealed class TrackRepository(MixPilotDbContext context, ILogger<TrackRepository> logger, IMapper mapper)
     : MixPilotRepository<Track>(context, logger, mapper), ITrackRepository
 {
+    public async Task<TrackVocabulary> GetVocabulary(CancellationToken ct)
+    {
+        var genres = await Query().Where(t => t.Genre != "").Select(t => t.Genre)
+            .Distinct().OrderBy(value => value).Take(200).ToArrayAsync(ct);
+        var moods = await Query().Where(t => t.Mood != "").Select(t => t.Mood)
+            .Distinct().OrderBy(value => value).Take(200).ToArrayAsync(ct);
+        return new(genres, moods);
+    }
+
     public async Task<PageResponse<Track>> Search(TrackQuery query, CancellationToken ct)
     {
         var tracks = Query();
