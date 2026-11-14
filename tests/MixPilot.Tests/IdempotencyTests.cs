@@ -32,7 +32,7 @@ public sealed class IdempotencyTests(ApiFactory factory) : IClassFixture<ApiFact
         (await response.Content.ReadFromJsonAsync<JsonObject>())!["code"]!.GetValue<string>();
 
     [Fact]
-    public async Task OpenApi_documents_header_on_exactly_four_operations()
+    public async Task OpenApi_documents_header_on_exactly_five_operations()
     {
         using var client = factory.Client(Guid.NewGuid().ToString());
         var document = await client.GetFromJsonAsync<JsonObject>("/swagger/v1/swagger.json");
@@ -47,7 +47,7 @@ public sealed class IdempotencyTests(ApiFactory factory) : IClassFixture<ApiFact
         Assert.Equal(new[]
         {
             "POST /api/v1/collections", "POST /api/v1/imports/csv",
-            "POST /api/v1/sets/generate", "POST /api/v1/tracks"
+            "POST /api/v1/set-generation-jobs", "POST /api/v1/sets/generate", "POST /api/v1/tracks"
         }, withHeader);
     }
 

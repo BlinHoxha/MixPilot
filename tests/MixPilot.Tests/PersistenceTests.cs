@@ -38,7 +38,7 @@ public sealed class PersistenceTests
     public void PostgreSql_migration_generates_schema_without_a_server()
     {
         using var db = new DesignTimeFactory().CreateDbContext([]);
-        Assert.Equal(3, db.Database.GetMigrations().Count());
+        Assert.Equal(4, db.Database.GetMigrations().Count());
         string script = db.GetService<IMigrator>().GenerateScript(options: MigrationsSqlGenerationOptions.Idempotent);
         Assert.Contains("CREATE TABLE \"Tracks\"", script);
         Assert.Contains("CREATE TABLE \"SetVersion\"", script);

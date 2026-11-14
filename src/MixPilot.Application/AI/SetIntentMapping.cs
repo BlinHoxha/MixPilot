@@ -76,7 +76,7 @@ public static class SetIntentMapping
             var proposed = value.GetString()!.Trim();
             var match = values.FirstOrDefault(item => string.Equals(item, proposed, StringComparison.OrdinalIgnoreCase));
             if (match is not null) return match;
-            unresolved.Add($"{name} '{proposed}' is not in the owner's library vocabulary.");
+            unresolved.Add($"{name} '{proposed[..Math.Min(proposed.Length, 100)]}' is not in the owner's library vocabulary.");
             return null;
         }
 

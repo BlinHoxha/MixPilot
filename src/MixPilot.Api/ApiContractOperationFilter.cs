@@ -39,5 +39,8 @@ public sealed class ApiContractOperationFilter : IOperationFilter
                 Content = { ["application/problem+json"] = new() { Schema = schema } }
             };
         }
+        foreach (var response in operation.Responses.Where(item => item.Key.Length == 3 && item.Key[0] == '2').Select(item => item.Value))
+            foreach (var mediaType in response.Content.Keys.Where(key => key != "application/json").ToArray())
+                response.Content.Remove(mediaType);
     }
 }

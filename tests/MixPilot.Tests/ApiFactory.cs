@@ -29,6 +29,7 @@ public sealed class ApiFactory : WebApplicationFactory<Api.Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Development");
+        builder.UseSetting("Jobs:Enabled", "false");
         builder.ConfigureLogging(logging => logging.ClearProviders());
         builder.ConfigureTestServices(services =>
         {

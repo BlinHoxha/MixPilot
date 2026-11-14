@@ -1,10 +1,11 @@
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 using MixPilot.Domain;
 
 namespace MixPilot.Api;
 
-public sealed class ApiExceptionHandler(ILogger<ApiExceptionHandler> logger, IProblemDetailsService problems) : IExceptionHandler
+public sealed class ApiExceptionHandler(ILogger<ApiExceptionHandler> logger) : IExceptionHandler
 {
     public async ValueTask<bool> TryHandleAsync(HttpContext context, Exception exception, CancellationToken cancellationToken)
     {
@@ -13,16 +14,16 @@ public sealed class ApiExceptionHandler(ILogger<ApiExceptionHandler> logger, IPr
         int status = rule?.StatusCode ?? 500;
         if (status >= 500) logger.LogError(exception, "Request failed: {TraceId}", context.TraceIdentifier);
         context.Response.StatusCode = status;
-        return await problems.TryWriteAsync(new()
+        var problem = new ProblemDetails
         {
-            HttpContext = context,
-            ProblemDetails = new ProblemDetails
-            {
-                Status = status, Title = status >= 500 ? "An unexpected error occurred" : "The request could not be completed",
-                Detail = rule?.Message, Instance = context.Request.Path,
-                Type = $"https://httpstatuses.com/{status}",
-                Extensions = { ["code"] = rule?.Code ?? "internal_error", ["traceId"] = context.TraceIdentifier }
-            }
-        });
+            Status = status, Title = rule is null ? "An unexpected error occurred" : "The request could not be completed",
+            Detail = rule?.Message, Instance = context.Request.Path,
+            Type = $"https://httpstatuses.com/{status}",
+            Extensions = { ["code"] = rule?.Code ?? "internal_error", ["traceId"] = context.TraceIdentifier }
+        };
+        context.Response.ContentType = "application/problem+json";
+        await JsonSerializer.SerializeAsync(context.Response.Body, problem,
+            new JsonSerializerOptions(JsonSerializerDefaults.Web), cancellationToken);
+        return true;
     }
 }

@@ -134,6 +134,29 @@ public sealed class SetIntentTests
         Assert.Equal(code, await Code(response));
     }
 
+    [Theory]
+    [InlineData("invalid_response")]
+    [InlineData("response_too_large")]
+    [InlineData("another_structured_error")]
+    public async Task Every_structured_generation_error_is_uninterpretable(string code)
+    {
+        using var factory = WithModel(new FakeModel { Failure = new StructuredGenerationException(code) });
+        using var client = factory.Client(Guid.NewGuid().ToString());
+        var response = await client.PostAsJsonAsync("/api/v1/set-intents", new SetIntentRequest { Prompt = "House", Territory = "HU" });
+        Assert.Equal(HttpStatusCode.UnprocessableEntity, response.StatusCode);
+        Assert.Equal("prompt_not_interpretable", await Code(response));
+    }
+
+    [Fact]
+    public void Unresolved_model_text_is_bounded()
+    {
+        using var output = JsonDocument.Parse(ValidOutput.Replace("House", new string('x', 400)));
+        var result = SetIntentMapping.Map(output.RootElement, new TrackVocabulary([], ["Late"]), "HU", "fake", null);
+        Assert.Single(result.Unresolved);
+        Assert.DoesNotContain(new string('x', 101), result.Unresolved[0]);
+        Assert.Contains(new string('x', 100), result.Unresolved[0]);
+    }
+
     [Fact]
     public async Task Availability_capabilities_and_request_validation_follow_configuration()
     {

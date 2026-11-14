@@ -79,8 +79,7 @@ public sealed class IdempotentAttribute : Attribute, IAsyncResourceFilter
                 if (error is RuleViolation { StatusCode: < 500 })
                 {
                     var handler = new ApiExceptionHandler(
-                        http.RequestServices.GetRequiredService<ILogger<ApiExceptionHandler>>(),
-                        http.RequestServices.GetRequiredService<IProblemDetailsService>());
+                        http.RequestServices.GetRequiredService<ILogger<ApiExceptionHandler>>());
                     executed.ExceptionHandled = await handler.TryHandleAsync(http, error, http.RequestAborted);
                 }
                 if (!executed.ExceptionHandled)

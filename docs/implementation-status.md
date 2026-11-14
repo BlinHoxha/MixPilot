@@ -45,9 +45,9 @@ By owner decision of 2026-11-12, the MixPilot Documentation v1.2 (Multi-Device +
 
 Implemented now in the backend: one API for both clients, DTO boundaries, metadata-only payloads, pagination, stable enums/errors/operation IDs, revision conflicts, capabilities, OpenAPI snapshot/drift checking and configurable browser CORS. The sibling `MixPilot.Frontend` repository has a React web workstation for library, collection, set planning and history workflows, an Expo companion preview for library search/details and saved-set review, a generated OpenAPI client, and shared validation. Its checked-in OpenAPI snapshot comes from this backend.
 
-Pending in the frontend: production mobile sign-in, native secure credential storage, mobile editing/quick-save and full native device testing. Audio upload/playback, durable jobs and SignalR, external discovery and DJ export also await backend capabilities.
+Pending in the frontend: production mobile sign-in, native secure credential storage, mobile editing/quick-save and full native device testing. Audio upload/playback, client adoption of set-generation jobs, SignalR, external discovery and DJ export also await backend capabilities.
 
-Prepared backend design: durable asynchronous jobs with polling and real-time notifications. These are documented interfaces for subsequent work, not working features claimed by the current API.
+Set-generation jobs are durable PostgreSQL rows with owner-scoped polling, leases and cancellation. Real-time notifications and other job kinds remain prepared designs for subsequent work.
 
 ## Verification and release gaps
 

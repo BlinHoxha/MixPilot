@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using MixPilot.Api;
@@ -13,8 +14,11 @@ using MixPilot.Infrastructure;
 var builder = WebApplication.CreateBuilder(args);
 builder.WebHost.ConfigureKestrel(options => options.Limits.MaxRequestBodySize = 1_048_576);
 builder.Services.AddHttpContextAccessor();
-builder.Services.AddScoped<ICurrentUser, HttpCurrentUser>();
+builder.Services.AddScoped<JobOwnerContext>();
+builder.Services.AddScoped<HttpCurrentUser>();
+builder.Services.AddScoped<ICurrentUser, ScopedCurrentUser>();
 builder.Services.AddMixPilot(builder.Configuration);
+if (builder.Configuration.GetValue("Jobs:Enabled", true)) builder.Services.AddHostedService<SetGenerationWorker>();
 
 bool developmentIdentity = builder.Configuration.GetValue<bool>("Authentication:UseDevelopmentIdentity");
 if (developmentIdentity && !builder.Environment.IsDevelopment())
@@ -39,7 +43,7 @@ if (!builder.Environment.IsDevelopment() && builder.Configuration.GetValue<bool>
 builder.Services.AddAuthorization(options => options.FallbackPolicy = new AuthorizationPolicyBuilder()
     .RequireAuthenticatedUser().RequireClaim("sub").RequireClaim("iss").Build());
 
-builder.Services.AddControllers().AddJsonOptions(options =>
+builder.Services.AddControllers(options => options.OutputFormatters.RemoveType<StringOutputFormatter>()).AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false));
     options.JsonSerializerOptions.UnmappedMemberHandling = JsonUnmappedMemberHandling.Disallow;

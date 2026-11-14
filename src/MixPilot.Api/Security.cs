@@ -25,6 +25,28 @@ public sealed class HttpCurrentUser(IHttpContextAccessor accessor) : ICurrentUse
     }
 }
 
+public sealed class JobOwnerContext(IHttpContextAccessor accessor)
+{
+    private string? ownerKey;
+    public string? OwnerKey => ownerKey;
+
+    public void SetForWorker(string key)
+    {
+        if (accessor.HttpContext is not null)
+            throw new InvalidOperationException("A job owner cannot be assigned during an HTTP request.");
+        if (ownerKey is not null)
+            throw new InvalidOperationException("The job owner is already assigned for this scope.");
+        if (key.Length != 64 || !key.All(Uri.IsHexDigit))
+            throw new ArgumentException("A valid owner key is required.", nameof(key));
+        ownerKey = key;
+    }
+}
+
+public sealed class ScopedCurrentUser(JobOwnerContext job, HttpCurrentUser http) : ICurrentUser
+{
+    public string OwnerKey => job.OwnerKey ?? http.OwnerKey;
+}
+
 // Explicit opt-in for a single local demo user; never accepts identity headers from a client.
 public sealed class DevelopmentAuthenticationHandler(IOptionsMonitor<AuthenticationSchemeOptions> options,
     ILoggerFactory logger, UrlEncoder encoder) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)

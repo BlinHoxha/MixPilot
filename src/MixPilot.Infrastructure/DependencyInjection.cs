@@ -30,10 +30,15 @@ public static class DependencyInjection
         services.AddScoped<IDjProfileRepository, DjProfileRepository>();
         services.AddScoped<ISetRepository, SetRepository>();
         services.AddScoped<IIdempotencyStore, IdempotencyStore>();
+        services.AddScoped<ISetGenerationJobRepository, SetGenerationJobRepository>();
+        services.AddScoped<IJobClaimRepository, JobClaimRepository>();
         services.AddScoped<ITrackService, TrackService>();
         services.AddScoped<ICollectionService, CollectionService>();
         services.AddScoped<IDjProfileService, DjProfileService>();
         services.AddScoped<ISetService, SetService>();
+        services.AddScoped<SetGenerationJobService>();
+        services.AddScoped<ISetGenerationJobService>(provider => provider.GetRequiredService<SetGenerationJobService>());
+        services.AddScoped<ISetGenerationJobProcessor>(provider => provider.GetRequiredService<SetGenerationJobService>());
         services.AddScoped<ISetIntentService>(provider => new SetPromptInterpreter(
             provider.GetRequiredService<ITrackRepository>(), provider.GetService<IStructuredGenerationModel>(),
             provider.GetRequiredService<AiFeatureOptions>()));

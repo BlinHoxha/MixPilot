@@ -33,7 +33,7 @@ public sealed class SetPromptInterpreter(ITrackRepository tracks, IStructuredGen
         { throw new RuleViolation("ai_provider_unavailable", "The AI provider is unavailable.", 503); }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         { throw new RuleViolation("ai_provider_timeout", "The AI provider timed out.", 503); }
-        catch (StructuredGenerationException e) when (e.Code == "invalid_response")
+        catch (StructuredGenerationException)
         { throw new RuleViolation("prompt_not_interpretable", "The prompt could not be interpreted."); }
 
         if (result.Status != StructuredGenerationStatus.Completed || result.OutputJson is null)

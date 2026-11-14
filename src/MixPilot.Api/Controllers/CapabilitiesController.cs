@@ -18,7 +18,7 @@ public sealed class CapabilitiesController(AiFeatureOptions ai, IServiceProvider
     {
         bool interpretation = ai.Enabled && services.IsService(typeof(IStructuredGenerationModel));
         return CommonResult<CapabilitiesResponse>.Success(new("v1",
-            ["personalLibrary", "csvImport", "collections", "djProfile", "deterministicSetPlanning", "setEditing", "setVersions", ..(ai.Enabled ? new[] { "setExplanations" } : Array.Empty<string>()), ..(interpretation ? new[] { "promptInterpretation" } : Array.Empty<string>())],
+            ["personalLibrary", "csvImport", "collections", "djProfile", "deterministicSetPlanning", "setEditing", "setVersions", "setGenerationJobs", ..(ai.Enabled ? new[] { "setExplanations" } : Array.Empty<string>()), ..(interpretation ? new[] { "promptInterpretation" } : Array.Empty<string>())],
             [..(interpretation ? Array.Empty<string>() : new[] { "promptInterpretation" }), "audioAnalysisJobs", "signalR", "externalDiscovery", "djSoftwareExport", "personalization"],
             100, 500, false, interpretation));
     }

@@ -15,6 +15,7 @@ public sealed class MixPilotDbContext(DbContextOptions<MixPilotDbContext> option
     public DbSet<DjProfile> Profiles => Set<DjProfile>();
     public DbSet<DjSet> Sets => Set<DjSet>();
     public DbSet<IdempotencyRecord> IdempotencyRecords => Set<IdempotencyRecord>();
+    public DbSet<SetGenerationJob> SetGenerationJobs => Set<SetGenerationJob>();
 
     protected override void OnModelCreating(ModelBuilder model)
     {
@@ -71,6 +72,21 @@ public sealed class MixPilotDbContext(DbContextOptions<MixPilotDbContext> option
             b.HasIndex(r => new { r.OwnerKey, r.Key }).IsUnique();
             b.HasQueryFilter(r => r.OwnerKey == OwnerKey);
         });
+        model.Entity<SetGenerationJob>(b =>
+        {
+            b.HasKey(j => j.Id);
+            b.Property(j => j.OwnerKey).HasMaxLength(64).IsRequired();
+            b.Property(j => j.Name).HasMaxLength(150).IsRequired();
+            b.Property(j => j.RequirementsJson).HasMaxLength(65536);
+            b.Property(j => j.Prompt).HasMaxLength(1000);
+            b.Property(j => j.Territory).HasMaxLength(2);
+            b.Property(j => j.Status).HasMaxLength(16).IsRequired();
+            b.Property(j => j.ErrorCode).HasMaxLength(100);
+            b.Property(j => j.CorrelationId).HasMaxLength(100).IsRequired();
+            b.HasIndex(j => new { j.OwnerKey, j.CreatedAt });
+            b.HasIndex(j => new { j.Status, j.LeaseExpiresAt });
+            b.HasQueryFilter(j => j.OwnerKey == OwnerKey);
+        });
     }
 
     private void ConfigureOwned<T>(EntityTypeBuilder<T> entity) where T : OwnedEntity
@@ -84,6 +100,13 @@ public sealed class MixPilotDbContext(DbContextOptions<MixPilotDbContext> option
 
     public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
+        foreach (var entry in ChangeTracker.Entries<SetGenerationJob>())
+        {
+            if (entry.State == EntityState.Added) entry.Entity.OwnerKey = OwnerKey;
+            else if ((entry.State is EntityState.Modified or EntityState.Deleted) &&
+                     (entry.Entity.OwnerKey != OwnerKey || entry.OriginalValues.GetValue<string>(nameof(SetGenerationJob.OwnerKey)) != OwnerKey))
+                throw new RuleViolation("forbidden", "This operation is not permitted.", 403);
+        }
         foreach (var entry in ChangeTracker.Entries<IdempotencyRecord>())
         {
             if (entry.State == EntityState.Added) entry.Entity.OwnerKey = OwnerKey;
