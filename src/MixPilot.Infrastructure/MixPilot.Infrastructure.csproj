@@ -8,4 +8,5 @@
 <ItemGroup><ProjectReference Include="$(AIFrameworkRoot)\src\AIFramework.Azure\AIFramework.Azure.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="$(AIFrameworkRoot)\src\AIFramework.Local\AIFramework.Local.csproj" /></ItemGroup>
 <ItemGroup><ProjectReference Include="$(AIFrameworkRoot)\src\AIFramework.Aws\AIFramework.Aws.csproj" /></ItemGroup>
+<ItemGroup><ProjectReference Include="$(AIFrameworkRoot)\src\AIFramework.Ollama\AIFramework.Ollama.csproj" /></ItemGroup>
 </Project>

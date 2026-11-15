@@ -49,6 +49,8 @@ Pending in the frontend: production mobile sign-in, native secure credential sto
 
 Set-generation jobs are durable PostgreSQL rows with owner-scoped polling, leases and cancellation. Real-time notifications and other job kinds remain prepared designs for subsequent work.
 
+Development can use the loopback-only AI-Framework Ollama adapter for structured set-intent previews and prompt-based jobs. Local remains the default, and set explanations remain extractive. No live Ollama service is part of the automated test suite.
+
 ## Verification and release gaps
 
 The automated suite covers domain rules, relational CRUD and constraints, authenticated owner boundaries, duplicate/CSV validation, stale and concurrent writes, saved versions/locks, OpenAPI drift, architecture boundaries and PostgreSQL migration/model generation.

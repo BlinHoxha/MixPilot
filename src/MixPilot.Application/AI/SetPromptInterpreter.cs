@@ -31,6 +31,8 @@ public sealed class SetPromptInterpreter(ITrackRepository tracks, IStructuredGen
         }
         catch (HttpRequestException)
         { throw new RuleViolation("ai_provider_unavailable", "The AI provider is unavailable.", 503); }
+        catch (ArgumentException)
+        { throw new RuleViolation("ai_provider_unavailable", "The AI provider is unavailable.", 503); }
         catch (OperationCanceledException) when (!ct.IsCancellationRequested)
         { throw new RuleViolation("ai_provider_timeout", "The AI provider timed out.", 503); }
         catch (StructuredGenerationException)

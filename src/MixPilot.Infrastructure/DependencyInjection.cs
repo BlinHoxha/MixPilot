@@ -4,6 +4,8 @@ using AIFramework.Application.Services;
 using AIFramework.Local;
 using AIFramework.Azure;
 using AIFramework.Aws;
+using AIFramework.Ollama;
+using System.Globalization;
 using MixPilot.Application.AI;
 using MixPilot.Application.Abstractions.AI;
 using MixPilot.Infrastructure.AI;
@@ -49,17 +51,21 @@ public static class DependencyInjection
         services.AddSingleton(new AiFeatureOptions(aiEnabled));
         if (aiEnabled)
         {
-            switch (configuration["AI:Provider"] ?? "Local")
+            switch ((configuration["AI:Provider"] ?? "Local").ToUpperInvariant())
             {
-                case "Local": services.AddLocalAi(); break;
-                case "Azure":
+                case "LOCAL": services.AddLocalAi(); break;
+                case "AZURE":
                     services.AddAzureAi(configuration);
                     var structured = configuration.GetSection("AI:Azure:Structured");
                     if (structured.Exists())
                         services.AddAzureStructuredGeneration(structured.Get<AzureStructuredOptions>()
                             ?? throw new InvalidOperationException("AI:Azure:Structured configuration is invalid."));
                     break;
-                case "Aws": services.AddBedrockChat(new(configuration["AI:Aws:Region"] ?? "", configuration["AI:Aws:ModelId"] ?? "")); break;
+                case "AWS": services.AddBedrockChat(new(configuration["AI:Aws:Region"] ?? "", configuration["AI:Aws:ModelId"] ?? "")); break;
+                case "OLLAMA":
+                    services.AddLocalAi();
+                    services.AddOllamaModels(ReadOllamaOptions(configuration.GetSection("AI:Ollama")));
+                    break;
                 default: throw new InvalidOperationException("Unsupported AI provider.");
             }
         }
@@ -72,6 +78,26 @@ public static class DependencyInjection
         services.AddDbContext<MixPilotDbContext>(options => options.UseNpgsql(
             configuration.GetConnectionString("MixPilot") ?? throw new InvalidOperationException("ConnectionStrings:MixPilot is required.")));
         return services;
+    }
+
+    private static OllamaOptions ReadOllamaOptions(IConfigurationSection section)
+    {
+        const string invalid = "AI:Ollama configuration is invalid.";
+        if (!section.Exists() || !Uri.TryCreate(section["Endpoint"], UriKind.Absolute, out var endpoint) ||
+            string.IsNullOrWhiteSpace(section["Model"]))
+            throw new InvalidOperationException(invalid);
+        int contextTokens = ReadInt("ContextTokens", 8192);
+        int timeoutSeconds = ReadInt("TimeoutSeconds", 120);
+        return new OllamaOptions(endpoint, section["Model"]!, contextTokens, timeoutSeconds);
+
+        int ReadInt(string name, int fallback)
+        {
+            string? value = section[name];
+            if (value is null) return fallback;
+            if (!int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out int parsed))
+                throw new InvalidOperationException(invalid);
+            return parsed;
+        }
     }
 }
 

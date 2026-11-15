@@ -40,6 +40,9 @@ else
 if (!builder.Environment.IsDevelopment() && builder.Configuration.GetValue<bool>("AI:Enabled") &&
     string.Equals(builder.Configuration["AI:Provider"] ?? "Local", "Local", StringComparison.OrdinalIgnoreCase))
     throw new InvalidOperationException("The local extractive AI provider is intended for Development only.");
+if (!builder.Environment.IsDevelopment() && builder.Configuration.GetValue<bool>("AI:Enabled") &&
+    string.Equals(builder.Configuration["AI:Provider"], "Ollama", StringComparison.OrdinalIgnoreCase))
+    throw new InvalidOperationException("The Ollama AI provider is intended for Development only.");
 builder.Services.AddAuthorization(options => options.FallbackPolicy = new AuthorizationPolicyBuilder()
     .RequireAuthenticatedUser().RequireClaim("sub").RequireClaim("iss").Build());
 

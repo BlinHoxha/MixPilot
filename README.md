@@ -127,3 +127,5 @@ After an intentional contract change, run `./scripts/Export-OpenApi.ps1`, review
 See [implementation status](docs/implementation-status.md) for requirement coverage and [architecture decisions](docs/architecture.md) for the next increments.
 
 AI libraries now come from the sibling AI-Framework repository. AIFrameworkRoot defaults to ../AI-Framework and can be overridden alongside FrameworkRoot. Shared source projects are included in the solution so Release builds use consistent configurations. AI-Framework owns provider configuration and deployment modules; Framework owns general persistence/web conventions.
+
+For local structured prompt interpretation, run `ollama pull qwen3:4b` and set `$env:AI__Provider = "Ollama"` before starting the API in Development. The `AI:Ollama` defaults in `appsettings.Development.json` target `http://localhost:11434/`; only loopback endpoint roots are accepted. Ollama is Development-only and is not the default. Set explanations continue to use the Local extractive model. Restore `AI__Provider=Local` when Ollama is unavailable.
