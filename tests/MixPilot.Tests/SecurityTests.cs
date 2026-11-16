@@ -4,11 +4,40 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.Hosting;
 using MixPilot.Api;
 using MixPilot.Domain;
+using System.Net;
+using System.Text.Json.Nodes;
 
 namespace MixPilot.Tests;
 
 public sealed class SecurityTests
 {
+    [Theory]
+    [InlineData("text/plain")]
+    [InlineData("application/json")]
+    [InlineData("*/*")]
+    public async Task Status_responses_use_problem_json_regardless_of_accept(string accept)
+    {
+        using var factory = new ApiFactory();
+        using var anonymous = factory.Client();
+        using var authenticated = factory.Client(Guid.NewGuid().ToString());
+        foreach (var (client, path, status, code) in new[]
+        {
+            (anonymous, "/api/v1/sets", HttpStatusCode.Unauthorized, "authentication_required"),
+            (authenticated, "/api/v1/no-such-route", HttpStatusCode.NotFound, "not_found")
+        })
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, path);
+            request.Headers.TryAddWithoutValidation("Accept", accept);
+            using var response = await client.SendAsync(request);
+            Assert.Equal(status, response.StatusCode);
+            Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+            var problem = JsonNode.Parse(await response.Content.ReadAsStringAsync())!;
+            Assert.Equal(code, problem["code"]?.GetValue<string>());
+            Assert.Equal((int)status, problem["status"]?.GetValue<int>());
+            Assert.False(string.IsNullOrWhiteSpace(problem["traceId"]?.GetValue<string>()));
+            Assert.False(string.IsNullOrWhiteSpace(problem["title"]?.GetValue<string>()));
+        }
+    }
     private static HttpCurrentUser User(string issuer, string subject) => new(new HttpContextAccessor
     {
         HttpContext = new DefaultHttpContext

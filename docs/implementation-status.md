@@ -16,7 +16,7 @@ This increment is a functioning **backend foundation and personal-library planni
 | FR-008 audio analysis | Deferred; manual metadata supported |
 | FR-009 collections | Ordered owner-scoped collections and revisioned membership |
 | FR-010–019 sources/discovery/identity | Source and rights types established; live adapters, inbox and normalization workflows deferred |
-| FR-020–021 natural language | Model-backed set-intent preview with owner-scoped genre/mood vocabulary, validated requirements and confirmation assumptions; Azure structured provider optional, no prompt-to-generation action |
+| FR-020–021 natural language | Model-backed set-intent preview with owner-scoped genre/mood vocabulary, validated requirements and bounded interpretation assumptions; the web builder fills editable requirements and can generate a set through a durable job or the synchronous endpoint |
 | FR-022 manual controls | Duration/BPM/energy/genre/mood/vocals/territory/exclusions; multi-source controls later |
 | FR-023 candidate pool | Personal-library candidates, bounded at 5,000; multi-source identity resolution later |
 | FR-024 rights filter | Planning/Mixable eligibility, license windows and territories; permissions fail closed |
@@ -45,9 +45,11 @@ By owner decision of 2026-11-12, the MixPilot Documentation v1.2 (Multi-Device +
 
 Implemented now in the backend: one API for both clients, DTO boundaries, metadata-only payloads, pagination, stable enums/errors/operation IDs, revision conflicts, capabilities, OpenAPI snapshot/drift checking and configurable browser CORS. The sibling `MixPilot.Frontend` repository has a React web workstation for library, collection, set planning and history workflows, an Expo companion preview for library search/details and saved-set review, a generated OpenAPI client, and shared validation. Its checked-in OpenAPI snapshot comes from this backend.
 
-Pending in the frontend: production mobile sign-in, native secure credential storage, mobile editing/quick-save and full native device testing. Audio upload/playback, client adoption of set-generation jobs, SignalR, external discovery and DJ export also await backend capabilities.
+Pending in the frontend: production mobile sign-in, native secure credential storage, mobile editing/quick-save and full native device testing. Audio upload/playback, SignalR, external discovery and DJ export await backend capabilities.
 
 Set-generation jobs are durable PostgreSQL rows with owner-scoped polling, leases and cancellation. Real-time notifications and other job kinds remain prepared designs for subsequent work.
+
+Job set creation and the conditional succeeded transition commit in one database transaction. If the lease is lost before completion, the set write rolls back and a reclaimed attempt may retry. Authentication, authorization and unmatched-route status responses use `application/problem+json` regardless of the request's `Accept` header. Prompt assumptions supplied by the model are limited to five short entries; mapping default assumptions are retained.
 
 Development can use the loopback-only AI-Framework Ollama adapter for structured set-intent previews and prompt-based jobs. Local remains the default, and set explanations remain extractive. No live Ollama service is part of the automated test suite.
 

@@ -86,7 +86,37 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(policy =>
 builder.Services.AddHealthChecks().AddCheck<DatabaseHealthCheck>("database", tags: ["ready"]);
 var app = builder.Build();
 app.UseExceptionHandler();
-app.UseStatusCodePages();
+app.UseStatusCodePages(async context =>
+{
+    var response = context.HttpContext.Response;
+    var status = response.StatusCode;
+    var problem = new ProblemDetails
+    {
+        Status = status,
+        Title = status switch
+        {
+            401 => "Authentication required",
+            403 => "Forbidden",
+            404 => "Not found",
+            405 => "Method not allowed",
+            _ => "The request could not be completed"
+        },
+        Type = $"https://httpstatuses.com/{status}",
+        Instance = context.HttpContext.Request.Path,
+        Extensions =
+        {
+            ["code"] = status switch
+            {
+                401 => "authentication_required", 403 => "forbidden", 404 => "not_found",
+                405 => "method_not_allowed", _ => "request_failed"
+            },
+            ["traceId"] = context.HttpContext.TraceIdentifier
+        }
+    };
+    response.ContentType = "application/problem+json";
+    await JsonSerializer.SerializeAsync(response.Body, problem,
+        new JsonSerializerOptions(JsonSerializerDefaults.Web), context.HttpContext.RequestAborted);
+});
 if (!app.Environment.IsDevelopment()) { app.UseHsts(); app.UseHttpsRedirection(); }
 app.UseCors();
 app.UseAuthentication();

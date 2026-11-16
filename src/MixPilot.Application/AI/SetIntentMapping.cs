@@ -43,7 +43,7 @@ public static class SetIntentMapping
 
         var assumptions = output.GetProperty("assumptions").EnumerateArray()
             .Select(item => item.GetString()!.Trim()).Where(item => item.Length > 0)
-            .Take(10).Select(item => item.Length <= 200 ? item : item[..200]).ToList();
+            .Take(5).Select(item => item.Length <= 160 ? item : item[..160]).ToList();
         var unresolved = new List<string>();
 
         int duration = 3600;

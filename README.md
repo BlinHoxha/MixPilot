@@ -16,7 +16,7 @@ Personal music-library management and deterministic DJ set planning, built on th
 - JWT bearer authentication integration; one fixed demo identity only when explicitly enabled in Development.
 - Unit, relational integration, concurrency, architecture and OpenAPI drift tests.
 
-The set builder currently accepts structured requirements. Natural-language interpretation, audio processing, background jobs, SignalR, external sources, personalization, export, marketplace and automatic mixing remain future increments. `/api/v1/capabilities` exposes this distinction to future clients.
+The set builder accepts structured requirements and natural-language prompt previews. Durable set-generation jobs are available to the web client. Audio processing, SignalR, external sources, personalization, export, marketplace and automatic mixing remain future increments. `/api/v1/capabilities` exposes this distinction to clients.
 
 ## Repository layout
 

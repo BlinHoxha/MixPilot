@@ -59,6 +59,51 @@ public sealed class JobTests
     }
 
     [Fact]
+    public async Task Failed_finish_rolls_back_set_and_reclaimed_attempt_creates_exactly_one()
+    {
+        using var factory = new ApiFactory();
+        var owner = Guid.NewGuid().ToString();
+        using var client = factory.Client(owner);
+        await SeedTrack(client, "Transactional track");
+        var job = await Submit(client, Structured("Transactional set"));
+        var first = await Claim(factory);
+        await using (var scope = factory.Services.CreateAsyncScope())
+        {
+            scope.ServiceProvider.GetRequiredService<JobOwnerContext>().SetForWorker(first.OwnerKey);
+            var unit = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+            var sets = scope.ServiceProvider.GetRequiredService<ISetService>();
+            var jobs = scope.ServiceProvider.GetRequiredService<ISetGenerationJobRepository>();
+            await Assert.ThrowsAsync<InvalidOperationException>(() => unit.ExecuteInTransaction(async ct =>
+            {
+                var created = await sets.Generate(new() { Name = "Rolled back", Requirements = Structured("ignored").Requirements! }, ct);
+                await jobs.Finish(job.Id, first.Attempt + 1, "succeeded", null, created.Id, DateTimeOffset.UtcNow, ct);
+            }, CancellationToken.None));
+        }
+        await using (var db = factory.OwnerContext(owner))
+            Assert.Empty(await db.Sets.ToListAsync());
+        var reclaimed = await Claim(factory, DateTimeOffset.UtcNow.AddMinutes(3));
+        Assert.Equal(first.Attempt + 1, reclaimed.Attempt);
+        await Process(factory, reclaimed);
+        await using (var db = factory.OwnerContext(owner))
+            Assert.Single(await db.Sets.ToListAsync());
+    }
+
+    [Fact]
+    public async Task Generation_rule_failure_preserves_error_code_without_a_set()
+    {
+        using var factory = new ApiFactory();
+        var owner = Guid.NewGuid().ToString();
+        using var client = factory.Client(owner);
+        var job = await Submit(client, Structured("No candidates"));
+        await Process(factory, await Claim(factory));
+        var failed = (await client.GetFromJsonAsync<CommonResult<SetGenerationJobResponse>>($"/api/v1/jobs/{job.Id}", Json))!.Data!;
+        Assert.Equal("failed", failed.Status);
+        Assert.Equal("no_eligible_tracks", failed.ErrorCode);
+        await using var db = factory.OwnerContext(owner);
+        Assert.Empty(await db.Sets.ToListAsync());
+    }
+
+    [Fact]
     public void Worker_owner_assignment_rejects_HTTP_and_second_assignment()
     {
         var accessor = new HttpContextAccessor { HttpContext = new DefaultHttpContext() };

@@ -11,7 +11,7 @@ using MixPilot.Domain;
 namespace MixPilot.Application.Services;
 
 public sealed class SetGenerationJobService(ISetGenerationJobRepository jobs, ISetService sets,
-    ISetPromptInterpreter interpreter, TimeProvider clock) : ISetGenerationJobService, ISetGenerationJobProcessor
+    ISetPromptInterpreter interpreter, IUnitOfWork unitOfWork, TimeProvider clock) : ISetGenerationJobService, ISetGenerationJobProcessor
 {
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
     { Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase, allowIntegerValues: false) } };
@@ -65,10 +65,15 @@ public sealed class SetGenerationJobService(ISetGenerationJobRepository jobs, IS
             }
             else requirements = JsonSerializer.Deserialize<SetRequirementsRequest>(job.RequirementsJson!, Json)!;
             if (await jobs.CancelIfRequested(id, attempt, clock.GetUtcNow(), ct)) return;
-            var set = await sets.Generate(new() { Name = job.Name, Requirements = requirements }, ct);
-            await jobs.Finish(id, attempt, "succeeded", null, set.Id, clock.GetUtcNow(), ct);
+            await unitOfWork.ExecuteInTransaction(async token =>
+            {
+                var set = await sets.Generate(new() { Name = job.Name, Requirements = requirements }, token);
+                await jobs.Finish(id, attempt, "succeeded", null, set.Id, clock.GetUtcNow(), token);
+            }, ct);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+        catch (InvalidOperationException error) when (error.Message == "The job lease is no longer owned by this worker.")
+        { throw; }
         catch (RuleViolation error)
         {
             await jobs.Finish(id, attempt, "failed", error.Code, null, clock.GetUtcNow(), CancellationToken.None);

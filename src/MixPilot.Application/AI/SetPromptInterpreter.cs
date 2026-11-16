@@ -22,6 +22,7 @@ public sealed class SetPromptInterpreter(ITrackRepository tracks, IStructuredGen
             $"Energy curves: gradualBuild, wave, peakAndCooldown, highEnergy, warmUp. " +
             $"Genres: {JsonSerializer.Serialize(vocabulary.Genres)}. " +
             $"Moods: {JsonSerializer.Serialize(vocabulary.Moods)}. " +
+            $"Assumptions must describe only values the prompt did not state or values you interpreted, one short sentence each. Do not describe the genre or give general music facts. " +
             $"Schema: {SetIntentSchema.Json}";
         StructuredGenerationResult result;
         try

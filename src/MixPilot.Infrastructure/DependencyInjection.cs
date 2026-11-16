@@ -18,6 +18,7 @@ using MixPilot.Application.Mapping;
 using MixPilot.Application.Services;
 using MixPilot.Domain;
 using MixPilot.Infrastructure.Persistence.Repositories;
+using MixPilot.Infrastructure.Persistence;
 
 namespace MixPilot.Infrastructure;
 
@@ -34,6 +35,7 @@ public static class DependencyInjection
         services.AddScoped<IIdempotencyStore, IdempotencyStore>();
         services.AddScoped<ISetGenerationJobRepository, SetGenerationJobRepository>();
         services.AddScoped<IJobClaimRepository, JobClaimRepository>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<ITrackService, TrackService>();
         services.AddScoped<ICollectionService, CollectionService>();
         services.AddScoped<IDjProfileService, DjProfileService>();

@@ -56,6 +56,23 @@ public sealed class SetIntentTests
     }
 
     [Fact]
+    public async Task Model_assumptions_are_bounded_and_instructions_reject_genre_facts()
+    {
+        var longText = new string('x', 200);
+        var output = ValidOutput.Replace("\"assumptions\":[]",
+            "\"assumptions\":[\"\" ," + string.Join(',', Enumerable.Repeat($"\"{longText}\"", 7)) + "]");
+        var model = new FakeModel { Output = output };
+        using var factory = WithModel(model);
+        using var client = factory.Client(Guid.NewGuid().ToString());
+        var response = await client.PostAsJsonAsync("/api/v1/set-intents", new SetIntentRequest { Prompt = "A set", Territory = "HU" });
+        response.EnsureSuccessStatusCode();
+        var preview = (await response.Content.ReadFromJsonAsync<CommonResult<SetIntentResponse>>(Json))!.Data!;
+        Assert.Equal(5, preview.Assumptions.Count(value => value.StartsWith('x')));
+        Assert.All(preview.Assumptions.Where(value => value.StartsWith('x')), value => Assert.Equal(160, value.Length));
+        Assert.Contains("Do not describe the genre or give general music facts", model.LastRequest!.Instructions);
+    }
+
+    [Fact]
     public async Task Endpoint_uses_only_owner_vocabulary_and_returns_valid_preview()
     {
         var model = new FakeModel { Output = ValidOutput };
