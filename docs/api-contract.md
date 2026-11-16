@@ -50,9 +50,9 @@ The detailed field definitions, validation limits and stable operation IDs are i
 
 `POST /api/v1/set-intents` accepts a 1–1000 character nonblank `prompt` and a two-letter uppercase `territory`. It returns `requirements`, `assumptions`, `unresolved`, `provider` and `model` in the normal success envelope. The returned requirements always use planning mode, the request territory and an empty exclusion list. Clients should show the assumptions and unresolved terms for confirmation or editing, then submit the confirmed requirements to `/api/v1/set-generation-jobs` or `/api/v1/sets/generate`. The model sees only the prompt, the closed output schema, the five energy-curve values and up to 200 distinct genre and mood values from that owner's library. Unknown genres or moods are left unresolved; unsupported duration or BPM values are defaulted with an assumption. Invalid model output returns 422 `prompt_not_interpretable`; an unconfigured or disabled structured provider returns 503 `prompt_interpretation_unavailable`; provider transport failures and timeouts return 503 `ai_provider_unavailable` or `ai_provider_timeout`. Azure structured generation is available only when AI is enabled, `AI:Provider` is `Azure`, and `AI:Azure:Structured` supplies an HTTPS `Endpoint` and a `Deployment`. In Development, `ollama pull qwen3:4b` and `$env:AI__Provider = "Ollama"` enable structured interpretation against the configured `AI:Ollama` loopback endpoint root. Set explanations remain Local extractive. Local and Aws providers do not enable prompt interpretation.
 
-## Rights and availability
-
 Model-supplied interpretation assumptions describe missing or interpreted prompt values, with at most five entries of 160 characters each. Mapping assumptions about defaulted requirements are retained. The web builder uses this preview to fill editable requirements before generation.
+
+## Rights and availability
 
 Initial registrations are `myLibrary` with availability `registeredMetadata`. This does not claim that an audio file is uploaded, playable, downloadable or verified. The authorization declaration enables reference/planning only. Audio permissions default false and cannot be supplied through track-write requests. Metadata imports never download media.
 

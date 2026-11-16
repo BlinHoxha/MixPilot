@@ -215,7 +215,7 @@ public sealed class OllamaProviderTests
                     if (read == 0) return;
                     headers.Append(Encoding.ASCII.GetString(buffer, 0, read));
                 }
-                if (kind == "slow") await Task.Delay(1500);
+                if (kind == "slow") await Task.Delay(5000);
                 var output = kind == "invalid" ? "{}" :
                     "{\"durationMinutes\":60,\"minBpm\":120,\"maxBpm\":130,\"genre\":null,\"mood\":null,\"hasVocals\":false,\"energyCurve\":\"wave\",\"assumptions\":[]}";
                 var body = JsonSerializer.Serialize(new

@@ -2,6 +2,6 @@
   "version": 1,
   "isRoot": true,
   "tools": {
-    "dotnet-ef": { "version": "9.0.8", "commands": ["dotnet-ef"] }
+    "dotnet-ef": { "version": "10.0.15", "commands": ["dotnet-ef"] }
   }
 }

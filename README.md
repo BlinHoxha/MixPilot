@@ -48,7 +48,7 @@ MixPilot references Framework's domain base, common contracts and extensible per
 
 ## Build and test
 
-The initial target is .NET 9 to match the existing Framework and installed SDK. Coordinate a supported-runtime and dependency upgrade across both repositories before production release.
+Build and run MixPilot with the .NET 10 SDK and runtime. The .NET 9 runtime is no longer needed for MixPilot; the sibling Framework repository supplies its net10.0 target.
 
 ```powershell
 dotnet restore MixPilot.sln
