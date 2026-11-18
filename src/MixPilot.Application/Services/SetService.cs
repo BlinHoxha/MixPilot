@@ -1,5 +1,4 @@
 using System.Text.Json;
-using AutoMapper;
 using Framework.Contracts.Pagination;
 using Microsoft.Extensions.Logging;
 using MixPilot.Application.Abstractions.Persistence;
@@ -10,8 +9,8 @@ using MixPilot.Domain;
 namespace MixPilot.Application.Services;
 
 public sealed class SetService(ISetRepository repository, ITrackRepository trackRepository, DjEngine engine,
-    ILogger<SetService> logger, IMapper mapper, TimeProvider clock)
-    : MixPilotService<DjSet, ISetRepository>(repository, logger, mapper, clock), ISetService
+    ILogger<SetService> logger, TimeProvider clock)
+    : MixPilotService<DjSet, ISetRepository>(repository, logger, clock), ISetService
 {
     public async Task<SetResponse> Generate(GenerateSetRequest request, CancellationToken ct)
     {

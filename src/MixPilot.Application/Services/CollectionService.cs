@@ -1,4 +1,3 @@
-using AutoMapper;
 using Framework.Contracts.Pagination;
 using Microsoft.Extensions.Logging;
 using MixPilot.Application.Abstractions.Persistence;
@@ -9,8 +8,8 @@ using MixPilot.Domain;
 namespace MixPilot.Application.Services;
 
 public sealed class CollectionService(ICollectionRepository repository, ITrackRepository tracks,
-    ILogger<CollectionService> logger, IMapper mapper, TimeProvider clock)
-    : MixPilotService<Collection, ICollectionRepository>(repository, logger, mapper, clock), ICollectionService
+    ILogger<CollectionService> logger, TimeProvider clock)
+    : MixPilotService<Collection, ICollectionRepository>(repository, logger, clock), ICollectionService
 {
     public async Task<CollectionResponse> Create(SaveCollectionRequest request, CancellationToken ct)
     {

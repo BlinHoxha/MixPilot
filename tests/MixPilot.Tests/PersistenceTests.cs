@@ -4,9 +4,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using MixPilot.Application.Abstractions.Identity;
 using MixPilot.Application.Services;
-using MixPilot.Application.Mapping;
 using MixPilot.Infrastructure.Persistence.Repositories;
-using AutoMapper;
 using Microsoft.Extensions.Logging.Abstractions;
 using MixPilot.Domain;
 using MixPilot.Infrastructure;
@@ -31,7 +29,7 @@ public sealed class PersistenceTests
         var competing = await second.Tracks.SingleAsync();
         track.Title = "First edit"; track.Revision++; await first.SaveChangesAsync();
         competing.Title = "Second edit"; competing.Revision++;
-        Assert.Equal("revision_conflict", (await Assert.ThrowsAsync<RuleViolation>(() => new TrackRepository(second, NullLogger<TrackRepository>.Instance, new MapperConfiguration(c => c.AddProfile<MixPilotMappingProfile>()).CreateMapper()).SaveChanges(default))).Code);
+        Assert.Equal("revision_conflict", (await Assert.ThrowsAsync<RuleViolation>(() => new TrackRepository(second, NullLogger<TrackRepository>.Instance).SaveChanges(default))).Code);
     }
 
     [Fact]

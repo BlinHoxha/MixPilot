@@ -11,7 +11,7 @@ Personal music-library management and deterministic DJ set planning, built on th
 - BPM, Camelot key, genre and energy scoring; whole-track duration planning; explicit rights filtering.
 - Saved sets, manual reorder/remove/replace/lock, regeneration around locked positions, and immutable version snapshots.
 - Optional set explanations through Framework KnowledgeAnswerService and IChatModel, with owner-scoped evidence and citations.
-- Dedicated repositories and typed services derived from Framework BaseRepository/BaseService.
+- Dedicated owner-scoped repositories and typed services; Framework supplies the lean persistence context.
 - PostgreSQL persistence and initial EF migration. No data is stored in an in-memory production repository.
 - JWT bearer authentication integration; one fixed demo identity only when explicitly enabled in Development.
 - Unit, relational integration, concurrency, architecture and OpenAPI drift tests.
@@ -30,7 +30,7 @@ repos/
       MixPilot.Api/          HTTP, authentication, composition, OpenAPI
       MixPilot.Contracts/    public client contracts; no EF or domain entities
       MixPilot.Domain/       entities, rights and deterministic DJ engine
-      MixPilot.Application/  use cases, mapping and persistence/provider interfaces
+      MixPilot.Application/  use cases and persistence/provider interfaces
       MixPilot.Infrastructure/ PostgreSQL and FrameworkDbContext implementation
     tests/MixPilot.Tests/
     docs/                    architecture, requirements and OpenAPI snapshot
@@ -44,7 +44,7 @@ repos/
 dotnet build MixPilot.sln -p:FrameworkRoot=C:\path\to\Framework
 ```
 
-MixPilot references Framework's domain base, common contracts and extensible persistence context. DJ business rules and authorization remain application-owned. AI-Framework's document Q&A pipeline is reused for explanations, while musical scoring remains in the deterministic DJ engine. See [layering and AI integration](docs/layering-and-ai.md).
+MixPilot references Framework's domain base, common contracts and lean persistence context. DJ business rules and authorization remain application-owned. AI-Framework's document Q&A pipeline is reused for explanations, while musical scoring remains in the deterministic DJ engine. See [layering and AI integration](docs/layering-and-ai.md).
 
 ## Build and test
 
@@ -58,7 +58,7 @@ dotnet test MixPilot.sln --no-build
 
 Integration tests run against a disposable SQLite relational database with test-only UTC/decimal conversions. PostgreSQL migration SQL and model drift are tested without connecting to a server. A live PostgreSQL migration/application smoke test is still required in your deployment environment.
 
-NuGet reported **GHSA-rvv3-g6hj-g44x** against Framework's existing AutoMapper 12.0.1 dependency during setup. This dependency arrives through Framework.Infrastructure. The shared packages were not silently upgraded. Review and remediate the advisory before release.
+MixPilot uses `Framework.Persistence` directly. Its application and infrastructure projects do not reference Framework's legacy mapping facades.
 
 ## Start locally
 

@@ -1,4 +1,3 @@
-using AutoMapper;
 using Framework.Contracts.Pagination;
 using Microsoft.Extensions.Logging;
 using MixPilot.Application.Abstractions.Persistence;
@@ -9,8 +8,8 @@ using MixPilot.Domain;
 namespace MixPilot.Application.Services;
 
 public sealed class DjProfileService(IDjProfileRepository repository, ILogger<DjProfileService> logger,
-    IMapper mapper, TimeProvider clock)
-    : MixPilotService<DjProfile, IDjProfileRepository>(repository, logger, mapper, clock), IDjProfileService
+    TimeProvider clock)
+    : MixPilotService<DjProfile, IDjProfileRepository>(repository, logger, clock), IDjProfileService
 {
     public async Task<ProfileResponse> Get(CancellationToken ct) =>
         (await EntityRepository.GetCurrent(ct) ?? throw Missing()).Response();

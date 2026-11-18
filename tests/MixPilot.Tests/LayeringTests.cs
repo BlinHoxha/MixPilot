@@ -1,9 +1,4 @@
-using AutoMapper;
-using Framework.Application.Abstractions.Services;
-using Framework.Application.Services;
-using Framework.Infrastructure.Persistence.Repositories;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.DependencyInjection;
 using MixPilot.Application.Abstractions.Services;
 using MixPilot.Application.Services;
 using MixPilot.Contracts;
@@ -13,19 +8,16 @@ using MixPilot.Infrastructure.Persistence.Repositories;
 
 namespace MixPilot.Tests;
 
-public sealed class LayeringTests(ApiFactory factory) : IClassFixture<ApiFactory>
+public sealed class LayeringTests
 {
     [Fact]
-    public void Repositories_and_services_reuse_Framework_bases()
+    public void Repositories_and_services_use_MixPilot_bases()
     {
-        Assert.True(typeof(BaseRepository<Track, Guid, MixPilotDbContext>).IsAssignableFrom(typeof(TrackRepository)));
-        Assert.True(typeof(BaseRepository<Collection, Guid, MixPilotDbContext>).IsAssignableFrom(typeof(CollectionRepository)));
-        Assert.True(typeof(BaseRepository<DjProfile, Guid, MixPilotDbContext>).IsAssignableFrom(typeof(DjProfileRepository)));
-        Assert.True(typeof(BaseRepository<DjSet, Guid, MixPilotDbContext>).IsAssignableFrom(typeof(SetRepository)));
-        Assert.True(typeof(BaseService<Track, Guid>).IsAssignableFrom(typeof(TrackService)));
-        Assert.True(typeof(BaseService<Collection, Guid>).IsAssignableFrom(typeof(CollectionService)));
-        Assert.True(typeof(BaseService<DjProfile, Guid>).IsAssignableFrom(typeof(DjProfileService)));
-        Assert.True(typeof(BaseService<DjSet, Guid>).IsAssignableFrom(typeof(SetService)));
+        Assert.All(new[] { typeof(TrackRepository), typeof(CollectionRepository), typeof(DjProfileRepository), typeof(SetRepository) },
+            type => Assert.Equal(typeof(MixPilotRepository<>), type.BaseType!.GetGenericTypeDefinition()));
+        Assert.All(new[] { typeof(TrackService), typeof(CollectionService), typeof(DjProfileService), typeof(SetService) },
+            type => Assert.Equal(typeof(MixPilotService<,>), type.BaseType!.GetGenericTypeDefinition()));
+        Assert.Equal(typeof(Framework.Persistence.FrameworkDbContext), typeof(MixPilotDbContext).BaseType);
     }
 
     [Fact]
@@ -42,15 +34,24 @@ public sealed class LayeringTests(ApiFactory factory) : IClassFixture<ApiFactory
     }
 
     [Fact]
-    public async Task Generic_service_writes_cannot_bypass_MixPilot_validation()
+    public void Generic_service_writes_cannot_bypass_MixPilot_validation()
     {
-        using var client = factory.Client("generic-write-test");
-        using var scope = factory.Services.CreateScope();
-        var service = (IBaseService<Track, Guid>)scope.ServiceProvider.GetRequiredService<ITrackService>();
-        var create = await Assert.ThrowsAsync<RuleViolation>(() => service.Add(new CreateTrackRequest { Title = "Bypass" }));
-        Assert.Equal("explicit_operation_required", create.Code);
-        Assert.Equal("explicit_operation_required", (await Assert.ThrowsAsync<RuleViolation>(() => service.Remove(Guid.NewGuid()))).Code);
-        Assert.Equal("explicit_operation_required", (await Assert.ThrowsAsync<RuleViolation>(() => service.AddRange(new[] { new CreateTrackRequest() }))).Code);
-        scope.ServiceProvider.GetRequiredService<IMapper>().ConfigurationProvider.AssertConfigurationIsValid();
+        foreach (var service in new[] { typeof(TrackService), typeof(CollectionService), typeof(DjProfileService), typeof(SetService) })
+        {
+            Assert.DoesNotContain(service.GetInterfaces(), type => type.IsGenericType && type.GetGenericTypeDefinition().Name == "IBaseService`2");
+            Assert.DoesNotContain(service.GetMethods(), method => method.IsGenericMethod &&
+                new[] { "Add", "AddRange", "Update", "UpdateRange", "Remove", "RemoveRange" }.Contains(method.Name));
+        }
+    }
+
+    [Fact]
+    public void MixPilot_does_not_ship_AutoMapper_or_legacy_Framework_facades()
+    {
+        using var dependencies = System.Text.Json.JsonDocument.Parse(File.ReadAllText(
+            Path.Combine(AppContext.BaseDirectory, "MixPilot.Tests.deps.json")));
+        var libraries = dependencies.RootElement.GetProperty("libraries").EnumerateObject().Select(entry => entry.Name).ToArray();
+        Assert.DoesNotContain(libraries, name => name.StartsWith("AutoMapper/", StringComparison.Ordinal));
+        Assert.DoesNotContain(libraries, name => name.StartsWith("Framework.Infrastructure/", StringComparison.Ordinal));
+        Assert.DoesNotContain(libraries, name => name.StartsWith("Framework.Application/", StringComparison.Ordinal));
     }
 }

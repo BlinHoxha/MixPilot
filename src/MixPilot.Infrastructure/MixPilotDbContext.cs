@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Framework.Infrastructure.Persistence;
+using Framework.Persistence;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using MixPilot.Application.Abstractions.Identity;

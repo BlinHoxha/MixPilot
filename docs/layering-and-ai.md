@@ -1,4 +1,4 @@
-# Framework-based repositories, services and AI
+# Owner-scoped repositories, services and AI
 
 MixPilot and Framework remain separate solutions in the same workspace. Shared Framework and AI-Framework projects are included in the solution for configuration consistency; project references consume their sibling libraries.
 
@@ -7,7 +7,7 @@ MixPilot and Framework remain separate solutions in the same workspace. Shared F
 ```text
 TracksController -> ITrackService -> TrackService -> ITrackRepository -> TrackRepository
                                                        |                   |
-                                                Framework.BaseService  Framework.BaseRepository
+                                                MixPilotService        MixPilotRepository
                                                                            |
                                                                    MixPilotDbContext
 ```
@@ -16,11 +16,11 @@ Collections, DJ profiles and sets follow the same pattern. Each abstraction has 
 
 Controllers handle HTTP binding and status codes. They depend on service interfaces and never query EF or repositories directly. Services own authorization declarations, duplicate decisions, revisions, rights, set generation and DTO mapping. Repositories own EF queries, includes, filtering, paging and persistence. All repository instances in one request share the same scoped MixPilotDbContext and its owner filters.
 
-`MixPilotRepository<TEntity>` extends Framework's three-parameter `BaseRepository` with the app context and existing persistence error translation. Specialized repositories reuse inherited `GetById`, `Add`, `AddRange`, `Remove` and `SaveChanges`, and add only their feature queries. Database calls stay in Infrastructure; services do not use the inherited repository IQueryable surface.
+`MixPilotRepository<TEntity>` provides `GetById`, `Add`, `AddRange`, `Remove` and `SaveChanges` on the app context, with persistence error translation. Specialized repositories add feature queries. Database calls stay in Infrastructure; services do not use the repository IQueryable surface.
 
-`MixPilotService<TEntity,TRepository>` extends Framework's `BaseService`. Its protected persistence helpers reuse Framework's create/bulk-create/delete orchestration, logging and single SaveChanges call after the typed service validates the operation. Self-maps preserve already-validated aggregates. Tracked edits save once through the same repository. CSV imports and aggregate version changes retain one transactional save.
+`MixPilotService<TEntity,TRepository>` contains the create/bulk-create/delete orchestration, logging and single SaveChanges call after the typed service validates the operation. Tracked edits save once through the same repository. CSV imports and aggregate version changes retain one transactional save.
 
-Framework's generic public mutation methods accept arbitrary mapped DTOs and do not carry MixPilot's expectedRevision or authorization declaration. MixPilot closes those inherited generic entry points and exposes typed application operations instead, including when a caller casts the service to `IBaseService`. This prevents a second path from bypassing business rules. Generic base CRUD controllers therefore remain optional; the existing HTTP contracts are preserved.
+MixPilot services expose no generic DTO mutation interface. Only typed application operations carry the expectedRevision and authorization declaration inputs, preventing a second path from bypassing business rules. The existing HTTP contracts are preserved.
 
 ## AI request flow
 

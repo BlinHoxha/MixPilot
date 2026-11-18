@@ -1,4 +1,3 @@
-using AutoMapper;
 using Framework.Contracts.Pagination;
 using Microsoft.Extensions.Logging;
 using MixPilot.Application.Abstractions.Persistence;
@@ -9,8 +8,8 @@ using MixPilot.Domain;
 namespace MixPilot.Application.Services;
 
 public sealed class TrackService(ITrackRepository repository, ICollectionRepository collections,
-    ILogger<TrackService> logger, IMapper mapper, TimeProvider clock)
-    : MixPilotService<Track, ITrackRepository>(repository, logger, mapper, clock), ITrackService
+    ILogger<TrackService> logger, TimeProvider clock)
+    : MixPilotService<Track, ITrackRepository>(repository, logger, clock), ITrackService
 {
     public async Task<PageResponse<TrackResponse>> Search(TrackQuery query, CancellationToken ct)
     {

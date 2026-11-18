@@ -1,4 +1,3 @@
-using AutoMapper;
 using Framework.Contracts.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -8,8 +7,8 @@ using MixPilot.Domain;
 
 namespace MixPilot.Infrastructure.Persistence.Repositories;
 
-public sealed class TrackRepository(MixPilotDbContext context, ILogger<TrackRepository> logger, IMapper mapper)
-    : MixPilotRepository<Track>(context, logger, mapper), ITrackRepository
+public sealed class TrackRepository(MixPilotDbContext context, ILogger<TrackRepository> logger)
+    : MixPilotRepository<Track>(context, logger), ITrackRepository
 {
     public async Task<TrackVocabulary> GetVocabulary(CancellationToken ct)
     {

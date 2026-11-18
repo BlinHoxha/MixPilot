@@ -1,4 +1,3 @@
-using AutoMapper;
 using AIFramework.Core.Abstractions;
 using AIFramework.Application.Services;
 using AIFramework.Local;
@@ -14,7 +13,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using MixPilot.Application.Abstractions.Persistence;
 using MixPilot.Application.Abstractions.Services;
-using MixPilot.Application.Mapping;
 using MixPilot.Application.Services;
 using MixPilot.Domain;
 using MixPilot.Infrastructure.Persistence.Repositories;
@@ -27,7 +25,6 @@ public static class DependencyInjection
     public static IServiceCollection AddMixPilot(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSingleton(TimeProvider.System);
-        services.AddAutoMapper(typeof(MixPilotMappingProfile).Assembly);
         services.AddScoped<ITrackRepository, TrackRepository>();
         services.AddScoped<ICollectionRepository, CollectionRepository>();
         services.AddScoped<IDjProfileRepository, DjProfileRepository>();

@@ -1,4 +1,3 @@
-using AutoMapper;
 using Framework.Contracts.Pagination;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -6,19 +5,51 @@ using MixPilot.Application.Abstractions.Persistence;
 using MixPilot.Contracts;
 using MixPilot.Domain;
 
-using Framework.Infrastructure.Persistence.Repositories;
 using Npgsql;
 
 namespace MixPilot.Infrastructure.Persistence.Repositories;
 
-/// <summary>Framework repository with MixPilot's context, owner query filters and persistence error contract.</summary>
-public abstract class MixPilotRepository<TEntity>(MixPilotDbContext context, ILogger logger, IMapper mapper)
-    : BaseRepository<TEntity, Guid, MixPilotDbContext>(context, logger, mapper)
+/// <summary>Owner-scoped EF operations and MixPilot's persistence error contract.</summary>
+public abstract class MixPilotRepository<TEntity>(MixPilotDbContext context, ILogger logger)
     where TEntity : OwnedEntity
 {
-    public override async Task<int> SaveChanges(CancellationToken ct = default)
+    protected ILogger Logger { get; } = logger;
+    protected DbSet<TEntity> DbSet { get; } = context.Set<TEntity>();
+
+    public virtual IQueryable<TEntity> Query(bool track = false) => track ? DbSet : DbSet.AsNoTracking();
+
+    public virtual Task<TEntity?> GetById(Guid id, bool track = false, CancellationToken ct = default) =>
+        Query(track).FirstOrDefaultAsync(entity => entity.Id == id, ct);
+
+    public virtual Task Add(TEntity entity, CancellationToken ct = default)
     {
-        try { return await base.SaveChanges(ct); }
+        ArgumentNullException.ThrowIfNull(entity);
+        return DbSet.AddAsync(entity, ct).AsTask();
+    }
+
+    public virtual Task AddRange(IEnumerable<TEntity> entities, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(entities);
+        return DbSet.AddRangeAsync(entities, ct);
+    }
+
+    public virtual Task Update(TEntity entity, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+        DbSet.Update(entity);
+        return Task.CompletedTask;
+    }
+
+    public virtual async Task Remove(Guid id, CancellationToken ct = default)
+    {
+        TEntity entity = await GetById(id, true, ct)
+            ?? throw new KeyNotFoundException($"{typeof(TEntity).Name} with id '{id}' was not found.");
+        DbSet.Remove(entity);
+    }
+
+    public virtual async Task<int> SaveChanges(CancellationToken ct = default)
+    {
+        try { return await context.SaveChangesAsync(ct); }
         catch (DbUpdateConcurrencyException)
         { throw new RuleViolation("revision_conflict", "The resource changed. Fetch the latest version before retrying.", 409); }
         catch (DbUpdateException ex) when (ex.InnerException is PostgresException { SqlState: "23505" })

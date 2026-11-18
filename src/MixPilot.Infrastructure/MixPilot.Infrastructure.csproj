@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <ProjectReference Include="..\MixPilot.Application\MixPilot.Application.csproj" />
-    <ProjectReference Include="$(FrameworkRoot)\src\Framework.Infrastructure\Framework.Infrastructure.csproj" />
+    <ProjectReference Include="$(FrameworkRoot)\src\Framework.Persistence\Framework.Persistence.csproj" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" PrivateAssets="all" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" />
   </ItemGroup>

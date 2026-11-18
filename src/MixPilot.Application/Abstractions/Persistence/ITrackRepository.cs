@@ -1,11 +1,10 @@
-using Framework.Application.Abstractions.Persistence;
 using Framework.Contracts.Pagination;
 using MixPilot.Contracts;
 using MixPilot.Domain;
 
 namespace MixPilot.Application.Abstractions.Persistence;
 
-public interface ITrackRepository : IBaseRepository<Track, Guid>
+public interface ITrackRepository : IOwnedRepository<Track>
 {
     Task<TrackVocabulary> GetVocabulary(CancellationToken ct);
     Task<PageResponse<Track>> Search(TrackQuery query, CancellationToken ct);

@@ -12,7 +12,7 @@ Client state, routing, native integrations and UI layouts remain client-owned. M
 
 Dependency direction is Api → Application/Infrastructure, Infrastructure → Application/Domain, Application → Domain/Contracts. Domain references only Framework.Domain; Contracts references only Framework.Contracts. Application code has no ASP.NET or EF dependency. The host supplies authentication and persistence.
 
-Framework.Infrastructure is reused via a derived MixPilotDbContext and dedicated repositories inheriting BaseRepository<TEntity, Guid, MixPilotDbContext>. Services inherit BaseService through MixPilotService and expose typed interfaces to controllers. See [layering and AI integration](layering-and-ai.md). Framework's generic CRUD controllers are deliberately not used directly for owner-sensitive resources: MixPilot's controllers expose explicit DTOs and application use cases with owner and revision enforcement. Framework stays independent of music concepts.
+Framework.Persistence supplies the base for MixPilotDbContext. MixPilot owns its repository and service bases, and exposes typed interfaces to controllers. See [layering and AI integration](layering-and-ai.md). MixPilot's controllers expose explicit DTOs and application use cases with owner and revision enforcement. Framework stays independent of music concepts.
 
 Current logical modules are Library, Profiles, Sets, Rights and the deterministic DJ Engine. Additional assemblies per feature are unnecessary for this first increment. Module boundaries can be extracted when complexity warrants it.
 
