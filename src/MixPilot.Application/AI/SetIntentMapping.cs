@@ -35,6 +35,16 @@ public static class SetIntentSchema
 
 public static class SetIntentMapping
 {
+    private static string CurveLabel(EnergyCurveType curve) => curve switch
+    {
+        EnergyCurveType.GradualBuild => "Progressive build",
+        EnergyCurveType.Wave => "Wave",
+        EnergyCurveType.PeakAndCooldown => "Peak & cooldown",
+        EnergyCurveType.HighEnergy => "High energy",
+        EnergyCurveType.WarmUp => "Warm-up",
+        _ => throw new ArgumentOutOfRangeException(nameof(curve))
+    };
+
     public static SetIntentResponse Map(JsonElement output, TrackVocabulary vocabulary,
         string territory, string provider, string? model)
     {
@@ -97,7 +107,7 @@ public static class SetIntentMapping
             ExcludedTrackIds = []
         };
         if (curve.ValueKind == JsonValueKind.Null)
-            assumptions.Add("Energy curve defaulted to gradualBuild because it was unspecified.");
+            assumptions.Add($"Energy curve defaulted to {CurveLabel(requirements.EnergyCurve)} because it was unspecified.");
         if (!Validator.TryValidateObject(requirements, new ValidationContext(requirements), new List<ValidationResult>(), true))
             throw new RuleViolation("prompt_not_interpretable", "The prompt could not be mapped to valid requirements.");
         return new(requirements, assumptions.ToArray(), unresolved.ToArray(), provider, model);

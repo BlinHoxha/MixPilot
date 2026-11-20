@@ -18,6 +18,19 @@ namespace MixPilot.Tests;
 
 public sealed class SetIntentTests
 {
+    [Fact]
+    public async Task Development_allows_127_loopback_web_preflight()
+    {
+        using var factory = new ApiFactory();
+        using var client = factory.Client();
+        using var request = new HttpRequestMessage(HttpMethod.Options, "/api/v1/tracks");
+        request.Headers.Add("Origin", "http://127.0.0.1:5173");
+        request.Headers.Add("Access-Control-Request-Method", "GET");
+        using var response = await client.SendAsync(request);
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+        Assert.Equal("http://127.0.0.1:5173", response.Headers.GetValues("Access-Control-Allow-Origin").Single());
+    }
+
     private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web)
     { Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) } };
 
@@ -52,6 +65,7 @@ public sealed class SetIntentTests
         Assert.Empty(mapped.Requirements.ExcludedTrackIds);
         Assert.Contains(mapped.Assumptions, value => value.Contains("Duration"));
         Assert.Contains(mapped.Assumptions, value => value.Contains("BPM range"));
+        Assert.Contains("Energy curve defaulted to Progressive build because it was unspecified.", mapped.Assumptions);
         Assert.Single(mapped.Unresolved);
     }
 

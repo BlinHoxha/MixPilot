@@ -68,7 +68,7 @@ Set version numbers are contiguous within a set and are independent of its `revi
 
 Use an OIDC provider with client-appropriate authorization code + PKCE flows when the frontend is built. Web and native clients must request the same backend audience. Native tokens belong in secure platform storage. No secrets belong in client bundles. Authentication does not yet include an app-hosted account system.
 
-The browser CORS allowlist is configurable; the Development default permits `http://localhost:5173`. Mobile does not require browser CORS. API authorization applies equally to both. Use HTTPS for deployed clients.
+The browser CORS allowlist is configurable; the Development default permits `http://localhost:5173` and `http://127.0.0.1:5173`. Mobile does not require browser CORS. API authorization applies equally to both. Use HTTPS for deployed clients.
 
 TanStack Query keys should include the active identity and the resource/filter tuple. Clear identity-scoped caches at logout. On a successful mutation, refresh affected detail/list/set-version queries. `registeredMetadata` must not be rendered as a playable audio asset.
 
