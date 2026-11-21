@@ -22,9 +22,15 @@ namespace MixPilot.Tests;
 
 public sealed class ApiFactory : WebApplicationFactory<Api.Program>
 {
-    private readonly SqliteConnection connection = new("Data Source=:memory:");
+    private readonly string connectionString = $"Data Source=mixpilot-test-{Guid.NewGuid():N};Mode=Memory;Cache=Shared";
+    private readonly SqliteConnection keepAliveConnection;
     private readonly Action<IServiceCollection>? configureServices;
-    public ApiFactory() => connection.Open();
+    public ApiFactory()
+    {
+        // Keep the database alive while each context opens its own connection for concurrent hosted-worker access.
+        keepAliveConnection = new SqliteConnection(connectionString);
+        keepAliveConnection.Open();
+    }
     internal ApiFactory(Action<IServiceCollection> configureServices) : this() => this.configureServices = configureServices;
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
@@ -35,7 +41,7 @@ public sealed class ApiFactory : WebApplicationFactory<Api.Program>
         {
             services.RemoveAll<IDbContextOptionsConfiguration<MixPilotDbContext>>();
             services.RemoveAll<DbContextOptions<MixPilotDbContext>>(); services.RemoveAll<MixPilotDbContext>();
-            services.AddDbContext<MixPilotDbContext>(o => o.UseSqlite(connection).ReplaceService<IModelCustomizer, SqliteTestModelCustomizer>());
+            services.AddDbContext<MixPilotDbContext>(o => o.UseSqlite(connectionString).ReplaceService<IModelCustomizer, SqliteTestModelCustomizer>());
             services.AddAuthentication("Test").AddScheme<AuthenticationSchemeOptions, TestAuthentication>("Test", _ => { });
             configureServices?.Invoke(services);
         });
@@ -44,7 +50,7 @@ public sealed class ApiFactory : WebApplicationFactory<Api.Program>
     {
         var ownerKey = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(
             JsonSerializer.Serialize(new[] { "test-issuer", subject }))));
-        var options = new DbContextOptionsBuilder<MixPilotDbContext>().UseSqlite(connection)
+        var options = new DbContextOptionsBuilder<MixPilotDbContext>().UseSqlite(connectionString)
             .ReplaceService<IModelCustomizer, SqliteTestModelCustomizer>().Options;
         return new MixPilotDbContext(options, new TestUser(ownerKey));
     }
@@ -56,7 +62,7 @@ public sealed class ApiFactory : WebApplicationFactory<Api.Program>
         if (subject is not null) client.DefaultRequestHeaders.Add("X-Test-Subject", subject);
         return client;
     }
-    protected override void Dispose(bool disposing) { base.Dispose(disposing); if (disposing) connection.Dispose(); }
+    protected override void Dispose(bool disposing) { base.Dispose(disposing); if (disposing) keepAliveConnection.Dispose(); }
 }
 
 // SQLite cannot order DateTimeOffset/decimal natively. Test-only conversions preserve UTC ordering
