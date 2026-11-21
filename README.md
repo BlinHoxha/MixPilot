@@ -60,6 +60,14 @@ Integration tests run against a disposable SQLite relational database with test-
 
 MixPilot uses `Framework.Persistence` directly. Its application and infrastructure projects do not reference Framework's legacy mapping facades.
 
+## Continuous integration
+
+The [Backend checks workflow](.github/workflows/backend.yml) runs on pushes and pull requests.
+It restores local tools and the solution, builds in Release, runs tests (including the OpenAPI drift check), and checks for pending EF model changes.
+The job checks out MixPilot, Framework, and AI-Framework as sibling folders so the solution's project references resolve.
+Framework is pinned to `138ab3654ad9ca778b4d2530bdc32662f1414612`; AI-Framework is pinned to `a4cd8006ae8a13d26c57514638dd2bf6385d5bc4`.
+To update either tested dependency, change `FRAMEWORK_REF` or `AI_FRAMEWORK_REF` in the workflow in the same commit as the MixPilot change that needs it.
+
 ## Start locally
 
 1. Open `MixPilot.sln` in Visual Studio and set **MixPilot.Api** as the startup project.

@@ -1,0 +1,46 @@
+name: Backend checks
+on: [push, pull_request]
+permissions:
+  contents: read
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  FRAMEWORK_REF: 138ab3654ad9ca778b4d2530bdc32662f1414612
+  AI_FRAMEWORK_REF: a4cd8006ae8a13d26c57514638dd2bf6385d5bc4
+  DOTNET_NOLOGO: "true"
+  DOTNET_CLI_TELEMETRY_OPTOUT: "true"
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: MixPilot
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: MixPilot
+      - uses: actions/checkout@v4
+        with:
+          repository: BlinHoxha/Framework
+          ref: ${{ env.FRAMEWORK_REF }}
+          path: Framework
+      - uses: actions/checkout@v4
+        with:
+          repository: BlinHoxha/AI-Framework
+          ref: ${{ env.AI_FRAMEWORK_REF }}
+          path: AI-Framework
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - run: dotnet tool restore
+      - run: dotnet restore MixPilot.sln
+      - run: dotnet build MixPilot.sln -c Release --no-restore
+      - run: dotnet test MixPilot.sln -c Release --no-build --logger "trx;LogFileName=test-results.trx" --results-directory TestResults
+      - run: dotnet ef migrations has-pending-model-changes --project src/MixPilot.Infrastructure --startup-project src/MixPilot.Api --configuration Release --no-build
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: backend-test-results
+          path: MixPilot/TestResults/
