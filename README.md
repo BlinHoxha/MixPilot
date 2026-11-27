@@ -56,9 +56,22 @@ dotnet build MixPilot.sln --no-restore
 dotnet test MixPilot.sln --no-build
 ```
 
-Integration tests run against a disposable SQLite relational database with test-only UTC/decimal conversions. PostgreSQL migration SQL and model drift are tested without connecting to a server. A live PostgreSQL migration/application smoke test is still required in your deployment environment.
+The default integration tests run against a disposable SQLite relational database with test-only UTC/decimal conversions. PostgreSQL migration SQL and model drift are tested without connecting to a server. The opt-in PostgreSQL suite below exercises the production provider locally; a migration/application smoke test is still required in your deployment environment.
 
 MixPilot uses `Framework.Persistence` directly. Its application and infrastructure projects do not reference Framework's legacy mapping facades.
+
+## PostgreSQL integration tests
+
+Install PostgreSQL 17 binaries (default `C:\Program Files\PostgreSQL\17\bin`), then run from the repository root:
+
+```powershell
+./scripts/Test-Postgres.ps1
+# Optional: -PostgresBin <bin-folder> -Port 55434 -Configuration Release -TestFilter 'FullyQualifiedName~PostgresIntegrationTests'
+```
+
+The script creates a disposable cluster under `.local/postgres-<guid>`, bound only to `127.0.0.1` on port 55434 by default, with a random password and SCRAM authentication. It leaves the installed service, port 5432 and the compose database untouched. It stops its cluster, deletes its password file and restores the previous test environment variable on exit; data and logs remain under the ignored `.local/` directory for diagnosis.
+
+Each PostgreSQL test creates, migrates and drops its own `mixpilot_test_<guid>` database. The suite covers migrations/model drift, concurrent job claims and locked rows, lease renewal/reclaim/exhaustion/cancellation, transactional set rollback, revision conflicts, idempotency and owner isolation. Without `MIXPILOT_TEST_POSTGRES`, these tests are reported as skipped with the variable name in the reason. For a separately provisioned disposable server, that variable must contain a maintenance connection string whose user can create and drop databases. Hosted CI continues to run the default suite without a live PostgreSQL server.
 
 ## Continuous integration
 
