@@ -2718,6 +2718,24 @@
             }
           },
           {
+            "name": "Subgenre",
+            "in": "query",
+            "schema": {
+              "maxLength": 100,
+              "minLength": 0,
+              "type": "string"
+            }
+          },
+          {
+            "name": "Tag",
+            "in": "query",
+            "schema": {
+              "maxLength": 40,
+              "minLength": 0,
+              "type": "string"
+            }
+          },
+          {
             "name": "MinBpm",
             "in": "query",
             "schema": {
@@ -3596,6 +3614,39 @@
           },
           "hasVocals": {
             "type": "boolean",
+            "nullable": true
+          },
+          "album": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "label": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "releaseDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "clearReleaseDate": {
+            "type": "boolean"
+          },
+          "subgenre": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
             "nullable": true
           },
           "authorizationConfirmed": {
@@ -4672,6 +4723,26 @@
           "updatedAt": {
             "type": "string",
             "format": "date-time"
+          },
+          "album": {
+            "type": "string"
+          },
+          "label": {
+            "type": "string"
+          },
+          "releaseDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "subgenre": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "additionalProperties": false
@@ -4742,7 +4813,8 @@
           "title",
           "artist",
           "bpm",
-          "createdAt"
+          "createdAt",
+          "releaseDate"
         ],
         "type": "string"
       },
@@ -4805,6 +4877,39 @@
           },
           "hasVocals": {
             "type": "boolean",
+            "nullable": true
+          },
+          "album": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "label": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "releaseDate": {
+            "type": "string",
+            "format": "date",
+            "nullable": true
+          },
+          "clearReleaseDate": {
+            "type": "boolean"
+          },
+          "subgenre": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "nullable": true
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
             "nullable": true
           },
           "expectedRevision": {

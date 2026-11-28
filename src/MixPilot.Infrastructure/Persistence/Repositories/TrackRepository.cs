@@ -25,11 +25,24 @@ public sealed class TrackRepository(MixPilotDbContext context, ILogger<TrackRepo
         if (!string.IsNullOrWhiteSpace(query.Search))
         {
             string term = query.Search.Trim().ToUpperInvariant();
-            tracks = tracks.Where(t => t.Artist.ToUpper().Contains(term) || t.Title.ToUpper().Contains(term));
+            tracks = tracks.Where(t => t.Artist.ToUpper().Contains(term) || t.Title.ToUpper().Contains(term) ||
+                t.Album.ToUpper().Contains(term) || t.Label.ToUpper().Contains(term));
         }
         if (!string.IsNullOrWhiteSpace(query.Genre))
         {
             string genre = query.Genre.Trim().ToUpperInvariant(); tracks = tracks.Where(t => t.Genre.ToUpper() == genre);
+        }
+        if (!string.IsNullOrWhiteSpace(query.Subgenre))
+        {
+            string subgenre = query.Subgenre.Trim().ToUpperInvariant();
+            tracks = tracks.Where(t => t.Subgenre.ToUpper() == subgenre);
+        }
+        if (!string.IsNullOrWhiteSpace(query.Tag))
+        {
+            if (!TrackTags.TryNormalize([query.Tag], out var tags, out var error))
+                throw new RuleViolation("validation_failed", error!, 400);
+            string tag = "|" + tags.Single().ToUpperInvariant() + "|";
+            tracks = tracks.Where(t => t.TagsStorage.ToUpper().Contains(tag));
         }
         if (query.MinBpm is { } min) tracks = tracks.Where(t => t.Bpm >= min);
         if (query.MaxBpm is { } max) tracks = tracks.Where(t => t.Bpm <= max);
@@ -40,6 +53,9 @@ public sealed class TrackRepository(MixPilotDbContext context, ILogger<TrackRepo
             TrackSort.Title => asc ? tracks.OrderBy(t => t.Title) : tracks.OrderByDescending(t => t.Title),
             TrackSort.Artist => asc ? tracks.OrderBy(t => t.Artist) : tracks.OrderByDescending(t => t.Artist),
             TrackSort.Bpm => asc ? tracks.OrderBy(t => t.Bpm) : tracks.OrderByDescending(t => t.Bpm),
+            TrackSort.ReleaseDate => asc
+                ? tracks.OrderBy(t => t.ReleaseDate == null).ThenBy(t => t.ReleaseDate)
+                : tracks.OrderBy(t => t.ReleaseDate == null).ThenByDescending(t => t.ReleaseDate),
             _ => asc ? tracks.OrderBy(t => t.CreatedAt) : tracks.OrderByDescending(t => t.CreatedAt)
         };
         var items = await ordered.ThenBy(t => t.Id).Skip((query.PageNumber - 1) * query.PageSize).Take(query.PageSize).ToArrayAsync(ct);

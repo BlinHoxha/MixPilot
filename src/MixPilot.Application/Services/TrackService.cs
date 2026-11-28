@@ -83,6 +83,17 @@ public sealed class TrackService(ITrackRepository repository, ICollectionReposit
         track.IdentityKey = Track.NormalizeIdentity(track.Artist, track.Title, track.Version);
         track.DurationSeconds = r.DurationSeconds; track.Bpm = r.Bpm; track.MusicalKey = r.MusicalKey;
         track.Energy = r.Energy; track.Genre = r.Genre.Trim(); track.Mood = r.Mood.Trim(); track.HasVocals = r.HasVocals;
+        if (r.Album is not null) track.Album = r.Album.Trim();
+        if (r.Label is not null) track.Label = r.Label.Trim();
+        if (r.Subgenre is not null) track.Subgenre = r.Subgenre.Trim();
+        if (r.ClearReleaseDate) track.ReleaseDate = null;
+        else if (r.ReleaseDate is not null) track.ReleaseDate = r.ReleaseDate;
+        if (r.Tags is not null)
+        {
+            if (!TrackTags.TryNormalize(r.Tags, out var tags, out var error))
+                throw new RuleViolation("validation_failed", error!, 400);
+            track.Tags = tags;
+        }
     }
 }
 

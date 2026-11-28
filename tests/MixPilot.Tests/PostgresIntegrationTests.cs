@@ -32,7 +32,7 @@ public sealed class PostgresIntegrationTests : IAsyncLifetime
     {
         await using var db = fixture.Create(Owner);
         var expected = db.Database.GetMigrations().ToArray();
-        Assert.Equal(4, expected.Length);
+        Assert.Equal(5, expected.Length);
         Assert.Equal(expected, (await db.Database.GetAppliedMigrationsAsync(Ct)).ToArray());
         Assert.False(db.Database.HasPendingModelChanges());
         await db.Database.OpenConnectionAsync(Ct);
@@ -44,6 +44,13 @@ public sealed class PostgresIntegrationTests : IAsyncLifetime
         while (await reader.ReadAsync(Ct)) tables.Add(reader.GetString(0));
         foreach (var table in new[] { "Tracks", "SetVersion", "IdempotencyRecords", "SetGenerationJobs" })
             Assert.Contains(table, tables);
+        await reader.DisposeAsync();
+        command.CommandText = "SELECT column_name FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'Tracks'";
+        await using var columnsReader = await command.ExecuteReaderAsync(Ct);
+        var columns = new List<string>();
+        while (await columnsReader.ReadAsync(Ct)) columns.Add(columnsReader.GetString(0));
+        foreach (var column in new[] { "Album", "Label", "ReleaseDate", "Subgenre", "Tags" })
+            Assert.Contains(column, columns);
     }
 
     [PostgresFact]

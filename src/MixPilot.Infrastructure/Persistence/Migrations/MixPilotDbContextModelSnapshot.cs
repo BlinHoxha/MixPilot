@@ -17,7 +17,7 @@ namespace MixPilot.Infrastructure.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "9.0.8")
+                .HasAnnotation("ProductVersion", "10.0.15")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -327,6 +327,13 @@ namespace MixPilot.Infrastructure.Persistence.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
+                    b.Property<string>("Album")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasDefaultValue("");
+
                     b.Property<string>("Artist")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -361,6 +368,13 @@ namespace MixPilot.Infrastructure.Persistence.Migrations
                         .HasMaxLength(710)
                         .HasColumnType("character varying(710)");
 
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)")
+                        .HasDefaultValue("");
+
                     b.Property<string>("Mood")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -374,6 +388,9 @@ namespace MixPilot.Infrastructure.Persistence.Migrations
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
+
+                    b.Property<DateOnly?>("ReleaseDate")
+                        .HasColumnType("date");
 
                     b.Property<int>("Revision")
                         .IsConcurrencyToken()
@@ -390,6 +407,21 @@ namespace MixPilot.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("SourceUrl")
                         .HasColumnType("text");
+
+                    b.Property<string>("Subgenre")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)")
+                        .HasDefaultValue("");
+
+                    b.Property<string>("TagsStorage")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(1000)
+                        .HasColumnType("character varying(1000)")
+                        .HasDefaultValue("")
+                        .HasColumnName("Tags");
 
                     b.Property<string>("Title")
                         .IsRequired()

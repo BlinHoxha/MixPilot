@@ -11,7 +11,8 @@ public static class ContractMapping
 
     public static TrackResponse Response(this Track t) => new(t.Id, t.Revision, t.Artist, t.Title, t.Version,
         t.DurationSeconds, t.Bpm, t.MusicalKey, t.Energy, t.Genre, t.Mood, t.HasVocals,
-        (SourceType)t.Source, Availability(t.Source), t.SourceUrl, t.Rights.Response(), t.CreatedAt, t.UpdatedAt);
+        (SourceType)t.Source, Availability(t.Source), t.SourceUrl, t.Rights.Response(), t.CreatedAt, t.UpdatedAt,
+        t.Album, t.Label, t.ReleaseDate, t.Subgenre, t.Tags);
 
     public static string Availability(SourceKind source) => source == SourceKind.MyLibrary ? "registeredMetadata" : "externalReference";
 

@@ -36,7 +36,7 @@ public sealed class PersistenceTests
     public void PostgreSql_migration_generates_schema_without_a_server()
     {
         using var db = new DesignTimeFactory().CreateDbContext([]);
-        Assert.Equal(4, db.Database.GetMigrations().Count());
+        Assert.Equal(5, db.Database.GetMigrations().Count());
         string script = db.GetService<IMigrator>().GenerateScript(options: MigrationsSqlGenerationOptions.Idempotent);
         Assert.Contains("CREATE TABLE \"Tracks\"", script);
         Assert.Contains("CREATE TABLE \"SetVersion\"", script);
@@ -45,6 +45,11 @@ public sealed class PersistenceTests
         Assert.Contains("CREATE TABLE \"IdempotencyRecords\"", script);
         Assert.Contains("IX_IdempotencyRecords_OwnerKey_Key", script);
         Assert.Contains("FK_CollectionTrack_Tracks_TrackId", script);
+        Assert.Contains("ADD \"Album\" character varying(200) NOT NULL DEFAULT ''", script);
+        Assert.Contains("ADD \"Label\" character varying(200) NOT NULL DEFAULT ''", script);
+        Assert.Contains("ADD \"ReleaseDate\" date", script);
+        Assert.Contains("ADD \"Subgenre\" character varying(100) NOT NULL DEFAULT ''", script);
+        Assert.Contains("ADD \"Tags\" character varying(1000) NOT NULL DEFAULT ''", script);
         Assert.False(db.Database.HasPendingModelChanges());
     }
 

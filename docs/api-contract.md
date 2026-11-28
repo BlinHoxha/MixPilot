@@ -53,6 +53,33 @@ The detailed field definitions, validation limits and stable operation IDs are i
 
 Model-supplied interpretation assumptions describe missing or interpreted prompt values, with at most five entries of 160 characters each. Mapping assumptions about defaulted requirements are retained. The web builder uses this preview to fill editable requirements before generation.
 
+## Track metadata and CSV import
+
+Track responses always include `album`, `label`, `releaseDate`, `subgenre` and `tags`.
+Text defaults to `""`, tags to `[]`, and an unknown release date to `null`. Album and label
+accept up to 200 characters; subgenre accepts up to 100. Dates use `yyyy-MM-dd`, from
+1900-01-01 through today's UTC date plus one year.
+
+On create, omitted or null metadata uses these defaults. On update, omitted or null metadata
+keeps its current value, so existing clients preserve it. Send `""` to clear a text field,
+`[]` to clear tags, or `clearReleaseDate: true` to clear the date. Supplying a non-null
+`releaseDate` together with `clearReleaseDate: true` is a validation error.
+
+Tags are trimmed, internal whitespace is collapsed, and empty entries are dropped. Duplicates
+are removed case-insensitively, preserving order and the first spelling. At most 20 distinct
+tags remain after normalization; each is at most 40 characters and cannot contain `|`.
+
+`GET /api/v1/tracks` also searches album and label through `search`. Optional `subgenre` and
+`tag` filters match exactly, case-insensitively; `tag` normalizes whitespace and matches a
+whole tag, so `house` does not match `deep house`. Use `sortBy=releaseDate` with either
+`direction=asc` or `direction=desc`; undated tracks sort last, followed by the ID tie-breaker.
+
+CSV requires `artist,title,durationSeconds`. Optional columns are `version,bpm,musicalKey,energy,
+genre,mood,hasVocals,album,label,releaseDate,subgenre,tags`. Release dates must be full invariant
+`yyyy-MM-dd` dates; CSV tags are separated by `;`. The same metadata validation applies to
+API writes and CSV imports. Invalid metadata reports `CSV record N: …`, and the whole import
+is rejected before any track is saved. Existing CSVs without the new columns keep working.
+
 ## Rights and availability
 
 Initial registrations are `myLibrary` with availability `registeredMetadata`. This does not claim that an audio file is uploaded, playable, downloadable or verified. The authorization declaration enables reference/planning only. Audio permissions default false and cannot be supplied through track-write requests. Metadata imports never download media.

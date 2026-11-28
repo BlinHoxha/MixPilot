@@ -18,7 +18,8 @@ internal static class CsvTrackReader
             var header = parser.ReadFields() ?? throw Invalid("CSV must contain a header row.");
             header[0] = header[0].TrimStart('\uFEFF');
             if (header.Distinct(StringComparer.OrdinalIgnoreCase).Count() != header.Length) throw Invalid("CSV headers must be unique.");
-            string[] allowed = ["artist", "title", "version", "durationSeconds", "bpm", "musicalKey", "energy", "genre", "mood", "hasVocals"];
+            string[] allowed = ["artist", "title", "version", "durationSeconds", "bpm", "musicalKey", "energy", "genre", "mood", "hasVocals",
+                "album", "label", "releaseDate", "subgenre", "tags"];
             if (header.Any(h => !allowed.Contains(h, StringComparer.OrdinalIgnoreCase))) throw Invalid("CSV contains an unsupported column.");
             foreach (var required in new[] { "artist", "title", "durationSeconds" })
                 if (!header.Contains(required, StringComparer.OrdinalIgnoreCase)) throw Invalid($"CSV requires the {required} column.");
@@ -30,6 +31,13 @@ internal static class CsvTrackReader
                 var fields = header.Zip(row).ToDictionary(p => p.First, p => p.Second, StringComparer.OrdinalIgnoreCase);
                 string Value(string key) => fields.GetValueOrDefault(key, "");
                 string? Optional(string key) => string.IsNullOrWhiteSpace(Value(key)) ? null : Value(key);
+                DateOnly? releaseDate = null;
+                if (Optional("releaseDate") is { } dateText)
+                {
+                    if (!DateOnly.TryParseExact(dateText, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
+                        throw Invalid($"CSV record {output.Count + 2}: releaseDate must be a valid yyyy-MM-dd date.");
+                    releaseDate = parsed;
+                }
                 var request = new CreateTrackRequest
                 {
                     Artist = Value("artist"), Title = Value("title"), Version = Value("version"),
@@ -39,6 +47,8 @@ internal static class CsvTrackReader
                     Energy = Optional("energy") is { } energy ? int.Parse(energy, CultureInfo.InvariantCulture) : null,
                     Genre = Value("genre"), Mood = Value("mood"),
                     HasVocals = Optional("hasVocals") is { } vocals ? bool.Parse(vocals) : null,
+                    Album = Optional("album"), Label = Optional("label"), ReleaseDate = releaseDate,
+                    Subgenre = Optional("subgenre"), Tags = Optional("tags")?.Split(';'),
                     AuthorizationConfirmed = true
                 };
                 var results = new List<ValidationResult>();

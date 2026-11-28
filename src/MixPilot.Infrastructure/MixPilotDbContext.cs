@@ -28,6 +28,12 @@ public sealed class MixPilotDbContext(DbContextOptions<MixPilotDbContext> option
         {
             b.Property(t => t.Artist).HasMaxLength(200); b.Property(t => t.Title).HasMaxLength(300);
             b.Property(t => t.Version).HasMaxLength(200); b.Property(t => t.IdentityKey).HasMaxLength(710);
+            b.Property(t => t.Album).HasMaxLength(200).HasDefaultValue("");
+            b.Property(t => t.Label).HasMaxLength(200).HasDefaultValue("");
+            b.Property(t => t.ReleaseDate).HasColumnType("date");
+            b.Property(t => t.Subgenre).HasMaxLength(100).HasDefaultValue("");
+            b.Ignore(t => t.Tags);
+            b.Property(t => t.TagsStorage).HasColumnName("Tags").HasMaxLength(1000).HasDefaultValue("");
             b.Property(t => t.Genre).HasMaxLength(100); b.Property(t => t.Mood).HasMaxLength(100);
             b.Property(t => t.MusicalKey).HasMaxLength(3); b.Property(t => t.Bpm).HasPrecision(6, 2);
             b.Property(t => t.Source).HasConversion<string>().HasMaxLength(32);

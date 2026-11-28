@@ -41,6 +41,16 @@ public sealed class Track : OwnedEntity
     public string Artist { get; set; } = "";
     public string Title { get; set; } = "";
     public string Version { get; set; } = "";
+    public string Album { get; set; } = "";
+    public string Label { get; set; } = "";
+    public DateOnly? ReleaseDate { get; set; }
+    public string Subgenre { get; set; } = "";
+    public string TagsStorage { get; set; } = "";
+    public string[] Tags
+    {
+        get => TagsStorage.Split('|', StringSplitOptions.RemoveEmptyEntries);
+        set => TagsStorage = value.Length == 0 ? "" : "|" + string.Join('|', value) + "|";
+    }
     public string IdentityKey { get; set; } = "";
     public int DurationSeconds { get; set; }
     public decimal? Bpm { get; set; }
