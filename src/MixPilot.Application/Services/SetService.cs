@@ -27,6 +27,21 @@ public sealed class SetService(ISetRepository repository, ITrackRepository track
         return Response(set, selected, Read(selected));
     }
 
+    public async Task<SetAlternativesResponse> Alternatives(Guid id, int position, int limit, CancellationToken ct)
+    {
+        if (limit is < 1 or > 25)
+            throw new RuleViolation("validation_failed", "Limit must be between 1 and 25.", 400);
+        var set = await Require(id, ct);
+        var version = set.Versions.MaxBy(v => v.Number)!;
+        var plan = Read(version);
+        var ranked = engine.RankAlternatives(plan, position,
+            (await TrackCatalog.Load(trackRepository, ct)).Select(t => t.Snapshot()), Clock.GetUtcNow(), limit);
+        var items = ranked.Select(c => new SetAlternativeResponse(c.Track.Id, c.Track.Artist, c.Track.Title,
+            c.Track.Version, c.Track.DurationSeconds, c.Track.Bpm, c.Track.MusicalKey, c.Track.Energy,
+            c.Track.Genre, c.Score, c.Transition, c.EnergyFit, c.DurationFit, c.Reasons)).ToArray();
+        return new(set.Id, version.Number, position, plan.Tracks.Single(t => t.Position == position).Track.Id, items);
+    }
+
     public async Task<PageResponse<SetSummaryResponse>> Search(PageQuery query, CancellationToken ct)
     {
         var page = await EntityRepository.Search(query, ct);

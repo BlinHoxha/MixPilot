@@ -60,6 +60,12 @@ public sealed record SetResponse(Guid Id, string Name, int Revision, int Version
 }
 
 public sealed record SetSummaryResponse(Guid Id, string Name, int Revision, DateTimeOffset UpdatedAt);
+public sealed record SetAlternativesResponse(Guid SetId, int Version, int Position, Guid CurrentTrackId,
+    IReadOnlyList<SetAlternativeResponse> Items);
+public sealed record SetAlternativeResponse(Guid TrackId, string Artist, string Title, string Version,
+    int DurationSeconds, decimal? Bpm, string? MusicalKey, int? Energy, string? Genre,
+    double Score, double Transition, double EnergyFit, double DurationFit, IReadOnlyList<string> Reasons);
+
 public sealed record SetVersionResponse(int Version, DateTimeOffset CreatedAt)
 {
     public SetVersionStatus Status { get; init; }

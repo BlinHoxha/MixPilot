@@ -26,7 +26,7 @@ This increment is a functioning **backend foundation and personal-library planni
 | FR-033 results | Ordered snapshots, source/availability/rights, BPM/key/energy and concise reasons |
 | FR-034 missing tracks | Deferred until external references are enabled |
 | FR-035 lock | Locked positions preserved during regeneration; unavailable locks fail explicitly |
-| FR-036 replace | Manual eligible replacement supported; ranked alternative suggestions deferred |
+| FR-036 replace | Manual eligible replacement and ranked alternative suggestions for the latest version; taste/recency signals later |
 | FR-037 conversational editing | Deferred |
 | FR-038 versions | Immutable recoverable versions after edits/regeneration |
 | FR-039 explanation | Deterministic reasons plus Framework grounded-answer service with citations; local extractive provider by default in Development, configurable Azure provider not live-tested |

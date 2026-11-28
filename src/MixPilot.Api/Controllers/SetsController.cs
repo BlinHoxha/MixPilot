@@ -19,6 +19,11 @@ public sealed class SetsController(ISetService sets) : ControllerBase
     [ProducesResponseType<CommonResult<SetResponse>>(200)]
     public async Task<ActionResult<CommonResult<SetResponse>>> Get(Guid id, CancellationToken ct) =>
         CommonResult<SetResponse>.Success(await sets.Get(id, null, ct));
+    [HttpGet("{id:guid}/positions/{position:int:min(1)}/alternatives")]
+    [ProducesResponseType<CommonResult<SetAlternativesResponse>>(200)]
+    public async Task<ActionResult<CommonResult<SetAlternativesResponse>>> Alternatives(Guid id, int position,
+        CancellationToken ct, [FromQuery, Range(1, 25)] int limit = 10) =>
+        CommonResult<SetAlternativesResponse>.Success(await sets.Alternatives(id, position, limit, ct));
     [HttpGet("{id:guid}/versions")]
     [ProducesResponseType<CommonResult<IReadOnlyList<SetVersionResponse>>>(200)]
     public async Task<ActionResult<CommonResult<IReadOnlyList<SetVersionResponse>>>> Versions(Guid id, CancellationToken ct) =>

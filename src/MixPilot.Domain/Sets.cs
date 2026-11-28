@@ -7,6 +7,9 @@ public sealed record SetRequirements(int DurationSeconds, decimal MinBpm, decima
 public sealed record PlannedTrack(int Position, TrackSnapshot Track, bool IsLocked,
     double Compatibility, string[] Reasons);
 
+public sealed record RankedAlternative(TrackSnapshot Track, double Score, double Transition,
+    double EnergyFit, double DurationFit, IReadOnlyList<string> Reasons);
+
 public sealed record SetPlan(SetRequirements Requirements, PlannedTrack[] Tracks, string[] Warnings)
 {
     public int DurationSeconds => Tracks.Sum(t => t.Track.DurationSeconds);

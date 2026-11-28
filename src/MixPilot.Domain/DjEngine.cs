@@ -66,6 +66,66 @@ public sealed class DjEngine
         return new(requirements, output.ToArray(), warnings.ToArray());
     }
 
+    public IReadOnlyList<RankedAlternative> RankAlternatives(SetPlan plan, int position,
+        IEnumerable<TrackSnapshot> candidates, DateTimeOffset now, int limit)
+    {
+        var ordered = plan.Tracks.OrderBy(t => t.Position).ToArray();
+        var current = ordered.SingleOrDefault(t => t.Position == position)
+            ?? throw new RuleViolation("not_found", "The position was not found.", 404);
+        if (current.IsLocked)
+            throw new RuleViolation("position_locked", "Unlock the position to get replacement suggestions.");
+        var previous = ordered.SingleOrDefault(t => t.Position == position - 1)?.Track;
+        var next = ordered.SingleOrDefault(t => t.Position == position + 1)?.Track;
+        var used = ordered.Select(t => t.Track.Id).ToHashSet();
+        var requirements = plan.Requirements;
+        int budget = (int)Math.Floor(requirements.DurationSeconds * 1.1);
+        int totalDuration = plan.DurationSeconds;
+        double progress = Math.Clamp(ordered.Where(t => t.Position < position).Sum(t => t.Track.DurationSeconds)
+            / (double)requirements.DurationSeconds, 0, 1);
+        double target = TargetEnergy(requirements.EnergyCurve, progress);
+
+        return candidates.Where(c => !used.Contains(c.Id) && IsEligible(c, requirements, now) &&
+                (totalDuration - current.Track.DurationSeconds + c.DurationSeconds <= budget ||
+                 c.DurationSeconds <= current.Track.DurationSeconds))
+            .Select(c =>
+            {
+                int neighbours = (previous is null ? 0 : 1) + (next is null ? 0 : 1);
+                double transition = neighbours == 0 ? 1 :
+                    ((previous is null ? 0 : Compatibility(previous, c)) +
+                     (next is null ? 0 : Compatibility(c, next))) / neighbours;
+                double energyFit = 1 - Math.Abs(c.Energy!.Value - target) / 9;
+                double durationFit = Math.Max(0, 1 - Math.Abs(c.DurationSeconds - current.Track.DurationSeconds)
+                    / (double)current.Track.DurationSeconds);
+                double score = 0.55 * transition + 0.30 * energyFit + 0.15 * durationFit;
+                return (Track: c, Score: score, Transition: transition, EnergyFit: energyFit, DurationFit: durationFit);
+            })
+            .OrderByDescending(c => c.Score).ThenBy(c => c.Track.Id).Take(limit)
+            .Select(c => new RankedAlternative(c.Track, Math.Round(c.Score, 3), Math.Round(c.Transition, 3),
+                Math.Round(c.EnergyFit, 3), Math.Round(c.DurationFit, 3),
+                AlternativeReasons(c.Track, current.Track, previous, next, target, requirements.EnergyCurve)))
+            .ToArray();
+    }
+
+    private static IReadOnlyList<string> AlternativeReasons(TrackSnapshot candidate, TrackSnapshot current,
+        TrackSnapshot? previous, TrackSnapshot? next, double target, EnergyCurve curve)
+    {
+        var bpm = new List<string>();
+        var keys = new List<string>();
+        foreach (var (label, neighbour) in new[] { ("Previous", previous), ("Next", next) })
+        {
+            if (neighbour is null) continue;
+            bpm.Add(neighbour.Bpm is null ? $"{label} BPM difference: unknown." :
+                FormattableString.Invariant($"{label} BPM difference: {Math.Abs(candidate.Bpm!.Value - neighbour.Bpm.Value):0.##}."));
+            keys.Add($"{label}: " + (HarmonicScore(candidate.MusicalKey, neighbour.MusicalKey) >= 0.8
+                ? "Compatible Camelot keys." : "Key compatibility is limited or unknown."));
+        }
+        var reasons = new List<string>();
+        if (bpm.Count > 0) { reasons.Add(string.Join(" ", bpm)); reasons.Add(string.Join(" ", keys)); }
+        reasons.Add(FormattableString.Invariant($"Energy {candidate.Energy}/10; target {target:0.#} for {curve}."));
+        reasons.Add(FormattableString.Invariant($"Duration difference: {candidate.DurationSeconds - current.DurationSeconds:+0;-0;0} seconds."));
+        return reasons;
+    }
+
     public static bool IsEligible(TrackSnapshot t, SetRequirements r, DateTimeOffset now) =>
         t.Rights.Allows(r.Mode, r.Territory, now) && t.Bpm >= r.MinBpm && t.Bpm <= r.MaxBpm &&
         t.Energy is >= 1 and <= 10 && t.DurationSeconds > 0 && !r.ExcludedTrackIds.Contains(t.Id) &&

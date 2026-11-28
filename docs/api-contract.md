@@ -38,6 +38,7 @@ Pagination is one-based: `pageNumber=1&pageSize=20` with a maximum size of 100. 
 | GET | `/api/v1/sets` | Lightweight summaries, not full track lists |
 | POST | `/api/v1/sets/generate` | Structured personal-library set generation |
 | GET | `/api/v1/sets/{id}` | Latest set plan |
+| GET | `/api/v1/sets/{id}/positions/{position}/alternatives` | Ranked replacement suggestions for an unlocked position in the latest version |
 | POST | `/api/v1/sets/{id}/explanation` | Evidence-based explanation through Framework AI services |
 | PUT | `/api/v1/sets/{id}/tracks` | Full order, removals/replacements and locks |
 | POST | `/api/v1/sets/{id}/regenerate` | New requirements, preserving locked positions |
@@ -63,6 +64,10 @@ Saved versions contain metadata and rights snapshots for historical explanation.
 Approval rechecks every track's current eligibility and rights against the selected version's requirements. A failure returns 422 `track_ineligible` without changing the set. A successful approval increments the set revision and sets `approvedVersion`; repeating approval of that version at the current revision changes nothing. New edit/regeneration versions remain `draft` while the approved version stays `approved`. When another version is approved, the earlier approval becomes `superseded`. `SetResponse` includes `status` and `approvedVersion`; version metadata includes `status` and `approvedAt`.
 
 Set version numbers are contiguous within a set and are independent of its `revision`. `approvedAt` records when a version was first approved; later supersession does not change it.
+
+`GET /api/v1/sets/{id}/positions/{position}/alternatives?limit=10` returns the latest version number, position, current track ID and up to `limit` candidates from the owner's current library (maximum 5,000 registered tracks). `limit` is 1–25, default 10; invalid values return 400 `validation_failed`. Missing or unowned sets and missing positions return 404 `not_found`; locked positions return 422 `position_locked`. When no candidate qualifies, `items` is empty (200).
+
+Suggestions recheck current rights and musical constraints, exclude tracks already in the set, and reject longer swaps that exceed the 110% duration budget. Equal or shorter swaps are allowed even if the set is already over budget. Ranking combines transition compatibility with the existing neighbours (55%), the requested energy curve (30%) and duration similarity (15%), then track ID for ties. Scores and components are reported to three decimals, with BPM, key, energy and duration reasons. The endpoint is read-only and changes no revision or version. Apply a suggestion by replacing the track ID in the full ordered list sent to `PUT /api/v1/sets/{id}/tracks`, with the current `expectedRevision` and desired locks; that existing write revalidates eligibility. Capabilities advertise `setAlternatives`.
 
 ## Authentication, caching and transport
 
